@@ -1,44 +1,24 @@
 with Ada.Text_IO;
-with GNAT.Sockets; use GNAT.Sockets;
-with Ada.Strings.Unbounded;
-with Ada.Streams;
-
 
 -- packages of this very program
 with Adaimageprocessor.Generic_Functions;
-
-use type Ada.Streams.Stream_Element_Count;
+with Adaimageprocessor.Socket;
 
 procedure Adaclient is   
    package IO renames Ada.Text_IO;
+   package SOCKET_COMM renames Adaimageprocessor.Socket;
    
-   Sockethandler : Socket_Type;
-   Server : Sock_Addr_Type;
-   Offset : Ada.Streams.Stream_Element_Offset;
-   
-   SEND_DATA_LENGTH : constant := 1;
-   RECEIVE_DATA_LENGTH : constant := 12;
-   RequestData: Ada.Streams.Stream_Element_Array (1 .. SEND_DATA_LENGTH);
-   ResultData: Ada.Streams.Stream_Element_Array (1 .. RECEIVE_DATA_LENGTH);
+   RequestData : Character;
+   Server_IP : constant String := "127.0.0.1";
+   Server_Port : constant Positive := 12345;
 begin
-   Gnat.Sockets.Initialize;
-   Create_Socket(Sockethandler, Family_Inet, Socket_Datagram);
-   Server.Addr := Inet_Addr("127.0.0.1");
-   Server.Port := 12345;
+
+   SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
    -- Make request for new image data
-   RequestData := ( 1 => Character'Pos('1') );
-   Send_Socket(Socket => Sockethandler,
-	       Item => RequestData,
-	       Last => Offset,
-	       To => Server);
-   Receive_Socket(Socket => Sockethandler,
-		  Item => ResultData,
-		  Last => Offset,
-		  From => Server);
-   for Index in ResultData'Range loop
-      IO.Put (Character'Val (ResultData (Index)));
-   end loop;
-   GNAT.Sockets.Close_Socket (Sockethandler);
+   RequestData := '1';
+   SOCKET_COMM.Send_Data(RequestData);
+   IO.Put_Line(SOCKET_COMM.Receive_Data);
+   SOCKET_COMM.Close_Socket;
    
 exception
    -- extend possibly with more defined exceptions
