@@ -1,0 +1,8 @@
+-- http://docs.adacore.com/gprbuild-docs/html/gprbuild_ug.html
+-- to compile use "gprbuild"
+project Adaimageprocessor is
+	for Source_Dirs use ("./**");
+	for Object_Dir use "obj";
+	for Exec_Dir use ".";
+	for Main use ("adaclient.adb");
+end Adaimageprocessor;

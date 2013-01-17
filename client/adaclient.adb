@@ -1,10 +1,17 @@
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;
 with GNAT.Sockets; use GNAT.Sockets;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded;
 with Ada.Streams;
+
+
+-- packages of this very program
+with Adaimageprocessor.Generic_Functions;
+
 use type Ada.Streams.Stream_Element_Count;
 
-procedure Adaclient is
+procedure Adaclient is   
+   package IO renames Ada.Text_IO;
+   
    Sockethandler : Socket_Type;
    Server : Sock_Addr_Type;
    Offset : Ada.Streams.Stream_Element_Offset;
@@ -18,7 +25,6 @@ begin
    Create_Socket(Sockethandler, Family_Inet, Socket_Datagram);
    Server.Addr := Inet_Addr("127.0.0.1");
    Server.Port := 12345;
-   
    -- Make request for new image data
    RequestData := ( 1 => Character'Pos('1') );
    Send_Socket(Socket => Sockethandler,
@@ -30,7 +36,12 @@ begin
 		  Last => Offset,
 		  From => Server);
    for Index in ResultData'Range loop
-      Put (Character'Val (ResultData (Index)));
+      IO.Put (Character'Val (ResultData (Index)));
    end loop;
-
+   GNAT.Sockets.Close_Socket (Sockethandler);
+   
+exception
+   -- extend possibly with more defined exceptions
+   when Error: others =>
+      AdaImageprocessor.Generic_Functions.Error(Error);
 end Adaclient;
