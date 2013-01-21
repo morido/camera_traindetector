@@ -1,4 +1,6 @@
+pragma Profile (Ravenscar);
 with Ada.Text_IO;
+
 
 -- packages of this very program
 with Adaimageprocessor.Generic_Functions;
@@ -12,7 +14,6 @@ procedure Adaclient is
    Server_IP : constant String := "127.0.0.1";
    Server_Port : constant Positive := 12345;
 begin
-
    SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
    -- Make request for new image data
    RequestData := '1';

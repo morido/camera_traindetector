@@ -1,8 +1,8 @@
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions;
-with Ada.Calendar;
-with GNAT.Calendar.Time_IO;
+with GNAT.Time_Stamp;
+
 
 package Adaimageprocessor.Generic_Functions is
    package EXCEPT renames Ada.Exceptions;
@@ -11,7 +11,6 @@ package Adaimageprocessor.Generic_Functions is
    private
       package IO renames Ada.Text_IO;
       package SU renames Ada.Strings.Unbounded;
-      package TIME renames Ada.Calendar;
-      package TIMEFORMAT renames GNAT.Calendar.Time_IO;
+      package TIMESTAMP renames GNAT.Time_Stamp;
       
 end Adaimageprocessor.Generic_Functions;
