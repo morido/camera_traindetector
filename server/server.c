@@ -21,14 +21,16 @@ socklen_t clientaddresslength;
 
 void error(const char *errormessage)
 {
-  /* print errormessage including timestamp with millisecond precision */
-  struct timeval tp;
-  gettimeofday(&tp, 0);
-  time_t curtime = tp.tv_sec;
-  struct tm *t = localtime(&curtime);
-  char completemessage[80];
+  /* unfortunately there is no full-fledged exception-handling in C as is with C++/Ada, so we have to deal with it this way */
 
-  sprintf(completemessage, "%02d:%02d:%02d.%03d %s", t->tm_hour, t->tm_min, t->tm_sec, (int) tp.tv_usec/1000, errormessage);
+  /* print errormessage including timestamp (ISO 8601) */
+  time_t now;
+  time(&now);
+  char timestamp[23];
+  char completemessage[80]; /* arbitrary fixed size */
+  
+  strftime(timestamp, sizeof timestamp, "%F %T.00", localtime(&now)); /* decisecond precision not implemented */
+  sprintf(completemessage, "%s %s", timestamp, errormessage);
   perror(completemessage);
   exit(-1);
 }
@@ -111,7 +113,7 @@ int main()
       /* answer the request */
       sendtoclient("Hallo Welt!\n");
     }
-
+  
   close_socket();
   return 0;
 }
