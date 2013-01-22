@@ -1,29 +1,11 @@
-#include <sys/types.h> /* POSIX Primitive System Data Types */
-#include <stdlib.h> /* for exit() */
-#include <sys/socket.h> /* Socket Library */
-#include <netinet/in.h> /* IP-Communication */
-#include <arpa/inet.h> /* conversion of IP-addresses */
-#include <stdio.h> /* I/O comunication */
-#include <string.h> /* memset() */
-#include <stdbool.h> /* boolean evaluation */
-#include <time.h> /* time functions */
-#include <errno.h> /* number of last error for error() */
-
-static const int PORTNUMBER=12345;
-static const char CLIENTADDRESS[16]="127.0.0.1";
-static const int RECEIVE_DATA_LENGTH = 1;
-static const int SEND_DATA_LENGTH = 12;
-
-typedef int SOCKET;
-SOCKET sockethandler;
-struct sockaddr_in clientaddress;
-socklen_t clientaddresslength;
+#include "server.h"
 
 void error(const char *errormessage)
 {
-  /* unfortunately there is no full-fledged exception-handling in C as is with C++/Ada, so we have to deal with it this way */
-
   /* print errormessage including timestamp (ISO 8601) */
+
+  /* unfortunately there is no full-fledged exception-handling in C as is with C++/Ada, so we have to deal with it this way */
+  
   time_t now;
   time(&now);
   char timestamp[23];
@@ -60,11 +42,15 @@ void open_socket()
 
 void close_socket()
 {
+  /* closes the socket opened by open_socket() */
+
   close(sockethandler);
 }
 
 char receivefromclient()
 {
+  /* receive data from the (Ada-)Client */
+
   char receivedata[RECEIVE_DATA_LENGTH];
   if (recvfrom(sockethandler, receivedata, RECEIVE_DATA_LENGTH, 0, (struct sockaddr *) &clientaddress, &clientaddresslength) < 0)
     {
@@ -89,11 +75,47 @@ bool evaluaterequest(const char *request, const char *comparevalue)
 
 void sendtoclient(const char *senddata)
 {
-  /* send data to a client */
+  /* send data to the client */
   if (sendto(sockethandler, senddata, SEND_DATA_LENGTH, 0, (struct sockaddr *) &clientaddress, clientaddresslength) < 0)
     {
       error("Error while sending data.");
     }
+}
+
+char* readimage()
+{
+  /* reads the whole camera-image and saves it for later use */
+
+  /* FIXME: add appropriate SDK specific code here */
+
+  /* right now we're only reading from a file, everything hardcoded  */
+
+  FILE *rawimagefile;
+  int current_character;
+  //static char imagedata[size??!]; /* memory will be reused each time we call the function, hence "static" */
+
+  rawimagefile = fopen("testimage.bmp", "r"); /* FIXME, no error handling here, change with SDK! */
+  while ( (current_character=getc(rawimagefile)) != EOF) { }
+
+  fclose(rawimagefile);
+}
+
+char* readimagechunk(const char* image, const int offset, const int length)
+{
+  /* reads a chunk of the image from the buffer created by readimage() */
+  const int chunksize = 500; /* FIXME: take guaranteed minimum size in IPv4 */
+}
+
+int number_of_imagechunks(const char* image)
+{
+  /* return the number of chunks required to transmit a certain image */
+  const int chunksize = 500; /* FIXME: make globally available, see above */
+  int result;
+  const int imagesize = sizeof(*image);
+
+  if ( imagesize % chunksize == 0 ) { result = (int)(imagesize/chunksize); }
+  else { result = (int)(1+imagesize/chunksize); }
+  return result;
 }
 
 
@@ -101,11 +123,11 @@ int main()
 {
   open_socket();
 
-  /* begin main server part */
+  /* main server part */
   clientaddresslength = sizeof(struct sockaddr_in);
   while( true )
     {
-      /* wait for request of data */
+      /* wait for data request */
       char requestresult;
       requestresult = receivefromclient();
       if ( evaluaterequest(&requestresult, "1") == false ) { continue; /* start all over and wait for next request */ }
