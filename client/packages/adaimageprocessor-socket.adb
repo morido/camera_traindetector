@@ -24,20 +24,21 @@ package body Adaimageprocessor.Socket is
 		  Last => Offset,
 		  To => Server);
     end Send_Data;
-   
-   function Receive_Data return String is
-      ResultData : Ada.Streams.Stream_Element_Array (1 .. RECEIVE_DATA_LENGTH);       
-      Offset : Ada.Streams.Stream_Element_Offset; -- FIXME: what is this good for? / same above
-      ReturnValue : SU.Unbounded_String;
-      use type Ada.Streams.Stream_Element_Count; -- FIXME: what does this do?
-   begin
-      GSOCK.Receive_Socket(Socket => Sockethandler,
-		     Item => ResultData,
-		     Last => Offset,
-		     From => Server);
-      for Index in ResultData'Range loop
-	 SU.Append(ReturnValue, Character'Val (ResultData (Index)));
-      end loop;
-      return SU.To_String(ReturnValue);
-   end Receive_Data;
+    
+    -- is String enough or do we need a Wide_String or similar?!
+    function Receive_Data return String is
+       ResultData : Ada.Streams.Stream_Element_Array (1 .. RECEIVE_DATA_LENGTH);       
+       Offset : Ada.Streams.Stream_Element_Offset; -- FIXME: what is this good for? / same above
+       ReturnValue : SU.Unbounded_String;
+       use type Ada.Streams.Stream_Element_Count; -- FIXME: what does this do?
+    begin
+       GSOCK.Receive_Socket(Socket => Sockethandler,
+			    Item => ResultData,
+			    Last => Offset,
+			    From => Server);
+       for Index in ResultData'Range loop
+	  SU.Append(ReturnValue, Character'Val (ResultData (Index)));
+       end loop;
+       return SU.To_String(ReturnValue);
+    end Receive_Data;
 end Adaimageprocessor.Socket;
