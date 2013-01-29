@@ -18,12 +18,12 @@ pragma Profile (Ravenscar);
 
 -- headers: Adaclient
 -- Ada.Text_IO - Text output
--- Adaimageprocessor.Generic_Functions - Subprograms applicable to all packages
+-- Adaimageprocessor.Generic_Subprograms - Subprograms applicable to all packages
 -- of this program
 -- Adaimageprocessor.Socket - Socket communication
 
 with Ada.Text_IO;
-with Adaimageprocessor.Generic_Functions;
+with Adaimageprocessor.Protocol.Imagetransfer;
 with Adaimageprocessor.Socket;
 
 -------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ with Adaimageprocessor.Socket;
 procedure Adaclient is   
    package IO renames Ada.Text_IO;
    package SOCKET_COMM renames Adaimageprocessor.Socket;
+   package IMAGE_RECV renames Adaimageprocessor.Protocol.Imagetransfer;
    
    -- Constants: Adaclient
    -- Server_IP - The IP-Address of the Server (i.e. the program running on the Camera)
@@ -47,21 +48,20 @@ procedure Adaclient is
    Server_IP : constant String := "127.0.0.1";
    Server_Port : constant Positive := 12345;
    
-   -- Variables: Adaclient
-   -- RequestData - FIXME
-   RequestData : Character;
+   COMMUNICATION_ERROR : exception; --FIXME; was soll das hier?
 begin
    SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
-   -- Make request for new image data
-   RequestData := '1';
-   SOCKET_COMM.Send_Data(RequestData);
-   IO.Put_Line(SOCKET_COMM.Receive_Data);
+
+   IMAGE_RECV.Write_Image_To_File;
+   
    SOCKET_COMM.Close_Socket;
    
 exception
    -- FIXME: extend possibly with more defined exceptions
+   when Error: COMMUNICATION_ERROR =>
+      Adaimageprocessor.FatalError(Error);
    when Error: others =>
-      AdaImageprocessor.Generic_Functions.Error(Error);
+      Adaimageprocessor.Error(Error);
 end Adaclient;
 
 
