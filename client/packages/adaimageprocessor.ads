@@ -10,11 +10,28 @@
 
 -- Headers: Adaimageprocessor
 -- Ada.Exceptions - Handle the raised exceptions in Error()
+-- System - For checks of the platform this program runs on
 with Ada.Exceptions;
-
+with System;
 
 package Adaimageprocessor is
    package EXCEPT renames Ada.Exceptions;
+   
+   -----------------------------------------------------------------------------
+   -- Procedure: Precheck
+   -- Pupose:
+   --   Check if the program can run on this particular architecture,
+   --
+   -- Parameters:
+   --   none.
+   --
+   -- Returns:
+   --   nothing.
+   --
+   -- Exceptions:
+   --   PLATFORM_ERROR
+   -----------------------------------------------------------------------------
+   procedure Precheck;
    
    -----------------------------------------------------------------------------
    -- Procedure: Error

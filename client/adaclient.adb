@@ -50,6 +50,11 @@ procedure Adaclient is
    
    COMMUNICATION_ERROR : exception; --FIXME; was soll das hier?
 begin
+   -- precheck our environment
+   Adaimageprocessor.Precheck;
+   
+   -- begin operation
+   
    SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
 
    IMAGE_RECV.Write_Image_To_File;

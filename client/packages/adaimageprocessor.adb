@@ -16,6 +16,17 @@ package body Adaimageprocessor is
    package CL renames Ada.Command_Line;
    package TIMESTAMP renames GNAT.Time_Stamp;
    
+   procedure Precheck is
+      PLATFORM_ERROR: exception;
+   begin
+      -- check if the size of a Character equals 8-bits
+      -- important for socket-communication
+      if (System.Storage_Unit /= 8) then
+	 raise PLATFORM_ERROR with "Your platform is not supported. Abort.";
+      end if;
+   end Precheck;
+   
+   
    procedure Error ( Errormessage: in EXCEPT.Exception_Occurrence ) is
       -- called via exception
       Completemessage : SU.Unbounded_String;
