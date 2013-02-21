@@ -142,10 +142,14 @@ private
    -- Sockethandler - Handler to the socket; set by
    -- <Adaimageprocessor.Socket.Open_Socket> and used by all other subprograms
    -- in this package to access the socket.
+   -- SocketIsSetUp - Variable indicating whether the socket has been
+   -- initialized, set by <Open_Socket>, unset by <Close_Socket>
+   -- CONNECTION_ERROR - default exception raised by subprograms of this package
    -----------------------------------------------------------------------------
    Server : GSOCK.Sock_Addr_Type;
    Sockethandler : GSOCK.Socket_Type;
-   
+   SocketIsSetUp : Boolean := False;
+   CONNECTION_ERROR : exception;
    
    -----------------------------------------------------------------------------
    -- Procedure: Send_Data
@@ -184,5 +188,22 @@ private
    --   None.
    -----------------------------------------------------------------------------
    function Raw_Receiver return Transmittable_Data_Array;
+   
+   -----------------------------------------------------------------------------
+   -- Function: Raw_Receiver
+   -- Purpose:
+   --   Check if the connection is set up properly. I.e. if <SocketIsSetUp> is
+   --   true.
+   --
+   -- Parameters:
+   --   None.
+   --
+   -- Returns:
+   --   nothing.
+   --
+   -- Exceptions:
+   --   CONNECTION_ERROR - raised if connection is not set up properly.
+   -----------------------------------------------------------------------------
+   procedure CheckSocketSetUp;
    
 end Adaimageprocessor.Socket;

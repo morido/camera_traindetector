@@ -10,11 +10,15 @@ package body Adaimageprocessor.Socket is
 					 Timeout => SOCKET_TIMEOUT));
       Server.Addr := GSOCK.Inet_Addr(Server_IP);
       Server.Port := GSOCK.Port_Type(Server_Port);
+      SocketIsSetUp := True;
    end Open_Socket;
    
    procedure Close_Socket is
    begin
-      GSOCK.Close_Socket (Sockethandler);
+      if SocketIsSetUp then
+	 GSOCK.Close_Socket (Sockethandler);
+	 SocketIsSetUp := False;
+      end if;
    end Close_Socket;
    
    procedure Send_String(String_To_Send : in String) is
@@ -24,6 +28,9 @@ package body Adaimageprocessor.Socket is
       Array_Temp_Indexer : Ada.Streams.Stream_Element_Offset := Array_Temp'First;
       LENGTH_EXCEPTION : exception;
    begin
+      CheckSocketSetUp;
+      
+      -- FIXME: check about "* 8" -- correct here?!
       if String_To_Send'Size > MAX_PACKET_SIZE * 8 then
 	 raise LENGTH_EXCEPTION with "Given string is too long to transmit.";
       end if;
@@ -43,8 +50,9 @@ package body Adaimageprocessor.Socket is
        Return_Value : Transmittable_Data_Array;
        subtype Valid_Connection_Retries is Natural range 0 .. MAX_CONNECTION_RETRIES;
        While_Index : Valid_Connection_Retries := Valid_Connection_Retries'First;
-       CONNECTION_ERROR : exception;
-    begin
+   begin
+      CheckSocketSetUp;
+      
        -- try to receive some data
        while While_Index < MAX_CONNECTION_RETRIES loop
 	  begin
@@ -80,7 +88,14 @@ package body Adaimageprocessor.Socket is
 			   Last => Offset,
 			   From => Server);
       return Received_Data;
-      -- EXception : Socket_Error propagated!
+      -- Exception : Socket_Error propagated!
    end Raw_Receiver;
+   
+   procedure CheckSocketSetUp is
+   begin
+      if not SocketIsSetUp then
+	 raise CONNECTION_ERROR with "Socket not set up.";
+      end if;
+   end CheckSocketSetUp;
    
 end Adaimageprocessor.Socket;
