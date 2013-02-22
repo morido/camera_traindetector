@@ -110,7 +110,7 @@ package Adaimageprocessor.Protocol is
    -- Exceptions:
    --  ImageDimensionError - The dimensions of the requested imaged do not make
    --  sense (i.e. the lower right corner is left of/higher up than its upper
-   --  left counterpart
+   --  left counterpart)
    --  CommunicationError - The server did not answer the request correctly
    -----------------------------------------------------------------------------
    function Request_Next_Image ( Subimage_Dimensions : Image_Dimensions )
@@ -126,8 +126,7 @@ package Adaimageprocessor.Protocol is
    --   Chunks - How many chunks to receive
    --
    -- Returns:
-   --   The image chunks in an unsorted array, due to the underlying
-   --   UDP-protocol.
+   --   The image chunks in an array.
    -----------------------------------------------------------------------------
    function Request_Chunks ( Chunks : in Number_Of_Chunks ) return Image_Chunks;
    

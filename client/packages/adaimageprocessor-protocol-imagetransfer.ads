@@ -24,6 +24,18 @@ package Adaimageprocessor.Protocol.Imagetransfer is
    subtype Image is Ada.Streams.Stream_Element_Array (1 .. Ada.Streams.Stream_Element_Offset(Number_Of_Chunks'Last * Image_Chunk_Data'Length));
    
    -----------------------------------------------------------------------------
+   -- Group: Client_Contoller
+   -- Purpose:
+   --  Task to run the actual client
+   --
+   -- Methods:
+   --  Start - Start operation
+   --  Stop -  Stop operation
+   -----------------------------------------------------------------------------
+   task Imagetransfer_Controller;
+   
+   
+   -----------------------------------------------------------------------------
    -- Function: Return_Image
    -- Purpose:
    --   Return an image from the server (camera). The image size may be
@@ -45,6 +57,45 @@ package Adaimageprocessor.Protocol.Imagetransfer is
    function Return_Image ( Subimage_Dimensions : Image_Dimensions )
 			 return Image;
    
+   -- FIXME: Missing doc; not for production code anyways
    procedure Write_Image_To_File;
+   
+private
+   -----------------------------------------------------------------------------
+   -- Section: Private
+   -----------------------------------------------------------------------------
+   
+   -----------------------------------------------------------------------------
+   -- Procedure: Precheck
+   -- Purpose:
+   --   Check if the program can run on this particular architecture,
+   --
+   -- Parameters:
+   --   none.
+   --
+   -- Returns:
+   --   nothing.
+   --
+   -- Exceptions:
+   --   PLATFORM_ERROR
+   -----------------------------------------------------------------------------
+   procedure Precheck;
+   
+   -----------------------------------------------------------------------------
+   -- Procedure: Cleanup
+   -- Purpose:
+   --   Various Cleanups after the program was interrupted
+   --
+   -- Parameters:
+   --   none.
+   --
+   -- Returns:
+   --   nothing.
+   --
+   -- Exceptions:
+   --   QUIT_REQUEST - Always raised. Forces the program to quit immediately.
+   -----------------------------------------------------------------------------
+   procedure Cleanup;
 
+   
 end Adaimageprocessor.Protocol.Imagetransfer;

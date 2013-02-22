@@ -24,7 +24,7 @@ pragma Profile (Ravenscar);
 
 with Ada.Text_IO;
 with Adaimageprocessor.Protocol.Imagetransfer;
-with Adaimageprocessor.Socket;
+
 
 -------------------------------------------------------------------------------
 -- Procedure: Adaclient
@@ -39,7 +39,7 @@ with Adaimageprocessor.Socket;
 -------------------------------------------------------------------------------
 procedure Adaclient is   
    package IO renames Ada.Text_IO;
-   package SOCKET_COMM renames Adaimageprocessor.Socket;
+   -- package SOCKET_COMM renames Adaimageprocessor.Socket;
    package IMAGE_RECV renames Adaimageprocessor.Protocol.Imagetransfer;
    
    -- Constants: Adaclient
@@ -51,19 +51,23 @@ procedure Adaclient is
    COMMUNICATION_ERROR : exception; --FIXME; was soll das hier?
 begin
    -- precheck our environment
-   Adaimageprocessor.Precheck;
+   -- Adaimageprocessor.Precheck;
    
    -- begin operation
    
-   SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
+   -- SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
 
-   IMAGE_RECV.Write_Image_To_File;
+   --IMAGE_RECV.Write_Image_To_File;
    
-   SOCKET_COMM.Close_Socket;
+   --SOCKET_COMM.Close_Socket;
    
+   null;
+  
 exception
    -- FIXME: extend possibly with more defined exceptions
    when Error: COMMUNICATION_ERROR =>
+      -- FIXME: This is never reached, because COMMNUNICATION_ERROR is not 
+      -- global
       Adaimageprocessor.FatalError(Error);
    when Error: others =>
       Adaimageprocessor.Error(Error);

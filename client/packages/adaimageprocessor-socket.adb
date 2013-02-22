@@ -56,6 +56,7 @@ package body Adaimageprocessor.Socket is
        -- try to receive some data
        while While_Index < MAX_CONNECTION_RETRIES loop
 	  begin
+	     AllowShutdown;
 	     Return_Value := Raw_Receiver;
 	     return Return_Value;
 	  exception

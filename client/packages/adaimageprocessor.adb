@@ -1,9 +1,11 @@
+--------------------------------------------------------------------------------
 -- Headers: Adaimageprocessor
 -- Ada.Text_IO - Text output, used for printing error messages
 -- Ada.Strings.Unbounded - String handling, used to compose error messages
 -- Ada.Command_Line - Return exit codes
 -- GNAT.Time_Stamp - Prints an ISO-conformant time stamp,
 -- note: _Ada.Calendar_ cannot be used here due to Ravenscar-restrictions
+--------------------------------------------------------------------------------
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Command_Line;
@@ -15,17 +17,6 @@ package body Adaimageprocessor is
    package SU renames Ada.Strings.Unbounded;
    package CL renames Ada.Command_Line;
    package TIMESTAMP renames GNAT.Time_Stamp;
-   
-   procedure Precheck is
-      PLATFORM_ERROR: exception;
-   begin
-      -- check if the size of a Character equals 8-bits
-      -- important for socket-communication
-      if (System.Storage_Unit /= 8) then
-	 raise PLATFORM_ERROR with "Your platform is not supported. Abort.";
-      end if;
-   end Precheck;
-   
    
    procedure Error ( Errormessage: in EXCEPT.Exception_Occurrence ) is
       -- called via exception
@@ -42,5 +33,22 @@ package body Adaimageprocessor is
       IO.Put_Line ("*** Will now halt. Goodbye. ***");
       CL.Set_Exit_Status (1);
    end FatalError;
+   
+   procedure AllowShutdown is
+   begin
+      if ShutdownFlag then
+	 raise END_TASK;
+      end if;
+   end AllowShutdown;
+   
+   -- private
+   
+   protected body InterruptController is
+      procedure InterruptHandler is
+      begin
+	 ShutdownFlag := True;
+      end InterruptHandler;
+   end InterruptController;
+   
    
 end Adaimageprocessor;

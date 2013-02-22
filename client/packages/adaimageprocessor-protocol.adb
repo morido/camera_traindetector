@@ -121,7 +121,7 @@ package body Adaimageprocessor.Protocol is
 	 Current_Chunk_Number := Number_Of_Chunks'Value(Current_Chunk_Number_As_String);
 	 
 	 -- automatically sort correctly
-	 Return_Array(Current_Chunk_Number) := Received_Data(5..Image_Chunk_Data'Last); 
+	 Return_Array(Current_Chunk_Number) := Received_Data(5..Image_Chunk_Data'Last);
       end loop;
       return Return_Array;
    end Request_Chunks;
