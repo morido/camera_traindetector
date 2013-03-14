@@ -3,38 +3,35 @@
 -- Purpose:
 --   Abstracts the <Adaimageprocessor.Protocol>-package.
 --------------------------------------------------------------------------------
-   
+
 --------------------------------------------------------------------------------
 -- Headers: Adaimageprocessor.Communication
 -- Ada.Streams - Methods to store arbitrary data (i.e. the image)
 -- Adaimageprocessor.Communication.Protocol - FIXME
 --------------------------------------------------------------------------------
-with Ada.Streams;
+-- with Ada.Streams; FIXME, needed here or inherited from parent?
 
 --- only testing FIXME; for file write
 with Ada.Streams.Stream_IO;
 -- END test
 
 package Adaimageprocessor.Protocol.Imagetransfer is
-   
+
    -----------------------------------------------------------------------------
    -- Types: Adaimageprocessor.Communication
    --  Image - A datatype which can hold the entire image
    -----------------------------------------------------------------------------
    subtype Image is Ada.Streams.Stream_Element_Array (1 .. Ada.Streams.Stream_Element_Offset(Number_Of_Chunks'Last * Image_Chunk_Data'Length));
-   
+
    -----------------------------------------------------------------------------
    -- Group: Client_Contoller
    -- Purpose:
    --  Task to run the actual client
-   --
-   -- Methods:
-   --  Start - Start operation
-   --  Stop -  Stop operation
    -----------------------------------------------------------------------------
-   task Imagetransfer_Controller;
-   
-   
+   task Imagetransfer_Controller is
+      pragma Storage_Size ( 8192*1024 );
+   end Imagetransfer_Controller;
+
    -----------------------------------------------------------------------------
    -- Function: Return_Image
    -- Purpose:
@@ -56,19 +53,29 @@ package Adaimageprocessor.Protocol.Imagetransfer is
    -----------------------------------------------------------------------------
    function Return_Image ( Subimage_Dimensions : Image_Dimensions )
 			 return Image;
-   
+
    -- FIXME: Missing doc; not for production code anyways
    procedure Write_Image_To_File;
-   
+
 private
    -----------------------------------------------------------------------------
    -- Section: Private
    -----------------------------------------------------------------------------
-   
+
    -----------------------------------------------------------------------------
-   -- Procedure: Precheck
+   -- Constants:
+   --
+   --  Server_IP - The IP of the server to connect to
+   --  Server_Port - The Port of the server to connect to
+   -----------------------------------------------------------------------------
+   Server_IP : constant String := "127.0.0.1";
+   Server_Port : constant Positive := 12345;
+
+   -----------------------------------------------------------------------------
+   -- Procedure: Setup
    -- Purpose:
-   --   Check if the program can run on this particular architecture,
+   --   Check if the program can run on this particular architecture, allocate
+   --   space for variables, initialize socket-connection
    --
    -- Parameters:
    --   none.
@@ -79,8 +86,8 @@ private
    -- Exceptions:
    --   PLATFORM_ERROR
    -----------------------------------------------------------------------------
-   procedure Precheck;
-   
+   procedure Setup;
+
    -----------------------------------------------------------------------------
    -- Procedure: Cleanup
    -- Purpose:
@@ -93,9 +100,9 @@ private
    --   nothing.
    --
    -- Exceptions:
-   --   QUIT_REQUEST - Always raised. Forces the program to quit immediately.
+   --   KILL - Always raised. Forces the program to quit immediately.
    -----------------------------------------------------------------------------
    procedure Cleanup;
 
-   
+
 end Adaimageprocessor.Protocol.Imagetransfer;

@@ -5,12 +5,12 @@
 -- (camera) and the client (this program)
 --
 -- Effects:
--- Abstracts the underlying <Adaimageprocessor.Protocol.Socket> 
+-- Abstracts the underlying <Adaimageprocessor.Protocol.Socket>
 -- package.
 --
 --------------------------------------------------------------------------------
 
-   
+
 --------------------------------------------------------------------------------
 -- Headers: Adaimageprocessor.Protocol
 -- Ada.Strings - Functions for String handling
@@ -28,33 +28,11 @@ package Adaimageprocessor.Protocol is
    package SOCKETCOMM renames Adaimageprocessor.Socket;
    package STRINGLIB renames Ada.Strings;
    package STRINGFIXEDLIB renames Ada.Strings.Fixed;
-   
-   -----------------------------------------------------------------------------
-   -- Package: Image_Max_Dimensions
-   -- Purpose:
-   --   Hide the actual Max_X and Max_Y values from being manipulated directly.
-   --
-   -- Functions: Image_Max_Dimensions
-   --  Image_Max_Dimensions.X - returns the maximum X pixel value
-   --  Image_Max_Dimensions.Y - returns the maximum Y pixel value
-   --  Is_Set - returns true if the size has been retrieved already; false if
-   --  not
-   --
-   -- Procedure: Set
-   --  Purpose: Communicates with the server and sets the Max_X and Max_Y values
-   --  Exceptions: COMMUNICATION_ERROR
-   -----------------------------------------------------------------------------
-   package Image_Max_Dimensions is
-      function X return Natural;
-      function Y return Natural;
-   private
-      procedure Set;
-   end Image_Max_Dimensions;
-   
+
    -----------------------------------------------------------------------------
    -- Package: Adaimageprocessor.Protocol
    -----------------------------------------------------------------------------
-   
+
    -----------------------------------------------------------------------------
    -- Types: Adaimageprocessor.Protocol
    --  Number_Of_Chunks - an Integer subtype covering all natural numbers up
@@ -71,13 +49,11 @@ package Adaimageprocessor.Protocol is
    --  dimension of <Number_Of_Chunks> that can hold the actual image chunks
    --  FIXME
    -----------------------------------------------------------------------------
-   subtype Number_Of_Chunks is Natural range 0 .. 6728; -- FIXME make server-dependant, relevant for Image_Chunk_Data!
-   
-   --subtype Width_Of_Image is Natural range 0 .. Image_Max_Dimensions.X;
-   --subtype Height_Of_Image is Natural range 0 .. Image_Max_Dimensions.Y;
+   subtype Number_Of_Chunks is Natural range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data!
+
    subtype Width_Of_Image is Natural range 0 .. 960;
    subtype Height_Of_Image is Natural range 0 .. 1280;
-   
+
    type Image_Dimensions is
       record
 	 Top_Left_X : Width_Of_Image;
@@ -85,12 +61,21 @@ package Adaimageprocessor.Protocol is
 	 Bottom_Right_X : Width_Of_Image;
 	 Bottom_Right_Y : Height_Of_Image;
       end record;
-   
+
    use type Ada.Streams.Stream_Element_Offset;
    subtype Image_Chunk_Data is SOCKETCOMM.Transmittable_Data_Array;
-   subtype Image_Chunk_Data_NoNumber is Ada.Streams.Stream_Element_Array(SOCKETCOMM.Transmittable_Data_Array'First+4 .. SOCKETCOMM.Transmittable_Data_Array'Last);
-   type Image_Chunks is array ( Number_Of_Chunks range <> ) of Image_Chunk_Data_NoNumber;
-   
+   subtype Image_Chunk_Data_NoNumber is Ada.Streams.Stream_Element_Array(SOCKETCOMM.Transmittable_Data_Array'First+4 .. SOCKETCOMM.Transmittable_Data_Array'Last-1);
+
+   type Image_Chunks_type is array ( Number_Of_Chunks'Range ) of Image_Chunk_Data_NoNumber;
+   --type Memory_Access is access Image_Chunks;
+   --Memory_Access_Pointer : Memory_Access := new Image_Chunks;
+   --Image_Chunks_Data : Image_Chunks renames Memory_Access_Pointer.all; -- konkrete daten hier rein
+   type Chunk_Data is record
+      Image_Chunks : Image_Chunks_type;
+      Last_Chunk_Offset : Ada.Streams.Stream_Element_Offset;
+   end record;
+
+
    -----------------------------------------------------------------------------
    -- Function: Request_Next_Image
    -- Purpose:
@@ -115,8 +100,8 @@ package Adaimageprocessor.Protocol is
    -----------------------------------------------------------------------------
    function Request_Next_Image ( Subimage_Dimensions : Image_Dimensions )
 			       return Number_Of_Chunks;
-   
-   
+
+
    -----------------------------------------------------------------------------
    -- Function: Request_Chunks
    -- Purpose:
@@ -128,14 +113,14 @@ package Adaimageprocessor.Protocol is
    -- Returns:
    --   The image chunks in an array.
    -----------------------------------------------------------------------------
-   function Request_Chunks ( Chunks : in Number_Of_Chunks ) return Image_Chunks;
-   
-      
+   function Request_Chunks ( Chunks : in Number_Of_Chunks ) return Chunk_Data;
+
+
 private
    -----------------------------------------------------------------------------
    -- Section: Private
    -----------------------------------------------------------------------------
-   
+
    -----------------------------------------------------------------------------
    -- Function: Process_Image_Size
    -- Purpose:
@@ -155,7 +140,7 @@ private
    -- FIXME
    -----------------------------------------------------------------------------
    function Process_Image_Size ( Size : in Natural ) return String;
-   
+
    -----------------------------------------------------------------------------
    -- Procedure: Camera_Error
    -- Purpose:
@@ -174,5 +159,5 @@ private
    --   None.
    -----------------------------------------------------------------------------
    function Camera_Error (Errormessage: in Image_Chunk_Data) return String;
-   
+
 end Adaimageprocessor.Protocol;

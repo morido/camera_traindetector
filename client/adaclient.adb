@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Package: Adaclient
--- Purpose: 
+-- Purpose:
 --   This is the main client file which performs the image-requests from the
 --   server, applies the detection algorithm and finally returns the presence
 --   and position of a train within the received picture.
@@ -15,62 +15,29 @@
 -------------------------------------------------------------------------------
 
 pragma Profile (Ravenscar);
-
--- headers: Adaclient
--- Ada.Text_IO - Text output
--- Adaimageprocessor.Generic_Subprograms - Subprograms applicable to all packages
--- of this program
--- Adaimageprocessor.Socket - Socket communication
-
-with Ada.Text_IO;
+pragma Ada_05;
 with Adaimageprocessor.Protocol.Imagetransfer;
-
 
 -------------------------------------------------------------------------------
 -- Procedure: Adaclient
+--
 -- Purpose:
---   Main program
+--   Main program, does nothing.
 --
 -- Effects:
---   To be launched automatically once the program starts
+--   To be launched automatically once the program starts.
 --
 -- Exceptions:
 --   others
 -------------------------------------------------------------------------------
-procedure Adaclient is   
-   package IO renames Ada.Text_IO;
-   -- package SOCKET_COMM renames Adaimageprocessor.Socket;
-   package IMAGE_RECV renames Adaimageprocessor.Protocol.Imagetransfer;
-   
-   -- Constants: Adaclient
-   -- Server_IP - The IP-Address of the Server (i.e. the program running on the Camera)
-   -- Server_Port - The Port which is used to communicate with the server
-   Server_IP : constant String := "127.0.0.1";
-   Server_Port : constant Positive := 12345;
-   
-   COMMUNICATION_ERROR : exception; --FIXME; was soll das hier?
+procedure Adaclient is
 begin
-   -- precheck our environment
-   -- Adaimageprocessor.Precheck;
-   
-   -- begin operation
-   
-   -- SOCKET_COMM.Open_Socket(Server_IP, Server_Port);
 
-   --IMAGE_RECV.Write_Image_To_File;
-   
-   --SOCKET_COMM.Close_Socket;
-   
+   -- all the work is done inside tasks which are implicitly started upon
+   -- execution of this main procedure; therefore we do absolutely nothing here
+
    null;
-  
-exception
-   -- FIXME: extend possibly with more defined exceptions
-   when Error: COMMUNICATION_ERROR =>
-      -- FIXME: This is never reached, because COMMNUNICATION_ERROR is not 
-      -- global
-      Adaimageprocessor.FatalError(Error);
-   when Error: others =>
-      Adaimageprocessor.Error(Error);
+
 end Adaclient;
 
 

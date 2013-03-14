@@ -21,7 +21,7 @@
 --   in UDP is a tradeoff for speed here.
 --------------------------------------------------------------------------------
 
-   
+
 --------------------------------------------------------------------------------
 -- Headers: Adaimageprocessor.Protocol.Socket
 -- GNAT.Sockets - Socket communication
@@ -31,9 +31,9 @@ with GNAT.Sockets;
 with Ada.Streams;
 
 package Adaimageprocessor.Socket is
-   
+
    package GSOCK renames GNAT.Sockets;
-   
+
    -----------------------------------------------------------------------------
    -- Constants: Adaimageprocessor.Socket
    -- MAX_PACKET_SIZE - the maximum size in bytes of a of user-data within a
@@ -41,19 +41,20 @@ package Adaimageprocessor.Socket is
    -- underlying IP-Layer
    -----------------------------------------------------------------------------
    MAX_PACKET_SIZE: constant Natural := 548;
-   
+
    -----------------------------------------------------------------------------
    -- Types: Adaimageprocessor.Socket
    --
    -----------------------------------------------------------------------------
-   subtype Transmittable_Data_Array is Ada.Streams.Stream_Element_Array(1 .. Ada.Streams.Stream_Element_Offset(MAX_PACKET_SIZE));
+   subtype Transmittable_Data_Array_Size is Ada.Streams.Stream_Element_Offset range 1 .. Ada.Streams.Stream_Element_Offset(MAX_PACKET_SIZE);
+   subtype Transmittable_Data_Array is Ada.Streams.Stream_Element_Array(Transmittable_Data_Array_Size'Range);
 
-   
+
    -----------------------------------------------------------------------------
    -- Procedure: Open_Socket
    -- Purpose:
    --   Open an UDP socket for communication
-   -- 
+   --
    -- Parameters:
    --   Server_IP - The IP of the server (camera) to communicate with
    --   Server_Port - The port to be used for the communication
@@ -65,7 +66,7 @@ package Adaimageprocessor.Socket is
    --   Socket_Error
    -----------------------------------------------------------------------------
    procedure Open_Socket(Server_IP : in String; Server_Port : in Positive);
-   
+
    -----------------------------------------------------------------------------
    -- Procedure: Close_Socket
    -- Purpose:
@@ -82,7 +83,7 @@ package Adaimageprocessor.Socket is
    --   None.
    -----------------------------------------------------------------------------
    procedure Close_Socket;
-   
+
    -----------------------------------------------------------------------------
    -- Procedure: Send_String
    -- Purpose:
@@ -98,7 +99,7 @@ package Adaimageprocessor.Socket is
    --  LENGTH_EXCEPTION - The string was too long to be transmitted.
    -----------------------------------------------------------------------------
    procedure Send_String (String_To_Send : in String);
-   
+
    -----------------------------------------------------------------------------
    -- Function: Receive_Data
    -- Purpose:
@@ -118,13 +119,13 @@ package Adaimageprocessor.Socket is
    --  CONNECTION_ERROR - raised if no data was received after
    --  <MAX_CONNECTION_RETRIES> retries
    -----------------------------------------------------------------------------
-   function Receive_Data return Transmittable_Data_Array;
-   
+   function Receive_Data return Ada.Streams.Stream_Element_Array;
+
 private
    -----------------------------------------------------------------------------
    -- Section: Private
    -----------------------------------------------------------------------------
-   
+
    -----------------------------------------------------------------------------
    -- Constants: Adaimageprocessor.Socket
    -- SOCKET_TIMEOUT - How long to wait for a datagram to arrive; in seconds
@@ -133,11 +134,11 @@ private
    -----------------------------------------------------------------------------
    SOCKET_TIMEOUT : constant Duration := 0.5;
    MAX_CONNECTION_RETRIES : constant Natural := 5;
-   
+
    -----------------------------------------------------------------------------
    -- Variables: Adaimageprocessor.Socket
-   -- Server - A record containing the IP and port of the server to communicate 
-   -- with; set by <Adaimageprocessor.Socket.Open_Socket> and used by all other 
+   -- Server - A record containing the IP and port of the server to communicate
+   -- with; set by <Adaimageprocessor.Socket.Open_Socket> and used by all other
    -- subprograms in this package.
    -- Sockethandler - Handler to the socket; set by
    -- <Adaimageprocessor.Socket.Open_Socket> and used by all other subprograms
@@ -150,15 +151,16 @@ private
    Sockethandler : GSOCK.Socket_Type;
    SocketIsSetUp : Boolean := False;
    CONNECTION_ERROR : exception;
-   
+
    -----------------------------------------------------------------------------
    -- Procedure: Send_Data
    -- Purpose:
-   --   Send data to the server using the socket created by 
+   --   Send data to the server using the socket created by
    --   <Adaimageprocessor.Socket.Open_Socket>
    --
    -- Parameters:
    --   Data_To_Send - The raw data to be transmitted
+   --   Last_Byte_To_Send - determines the size of the packet
    --
    -- Returns:
    --   Nothing.
@@ -166,8 +168,8 @@ private
    -- Exceptions:
    --   Socket_Error.
    -----------------------------------------------------------------------------
-   procedure Send_Data(Data_To_Send : in Transmittable_Data_Array);
-   
+   procedure Send_Data(Data_To_Send : in Ada.Streams.Stream_Element_Array);
+
    -----------------------------------------------------------------------------
    -- Function: Raw_Receiver
    -- Purpose:
@@ -187,8 +189,8 @@ private
    -- Exceptions:
    --   None.
    -----------------------------------------------------------------------------
-   function Raw_Receiver return Transmittable_Data_Array;
-   
+   function Raw_Receiver return Ada.Streams.Stream_Element_Array;
+
    -----------------------------------------------------------------------------
    -- Function: Raw_Receiver
    -- Purpose:
@@ -205,5 +207,5 @@ private
    --   CONNECTION_ERROR - raised if connection is not set up properly.
    -----------------------------------------------------------------------------
    procedure CheckSocketSetUp;
-   
+
 end Adaimageprocessor.Socket;
