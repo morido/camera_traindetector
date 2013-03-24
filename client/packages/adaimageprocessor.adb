@@ -1,15 +1,7 @@
---------------------------------------------------------------------------------
--- Headers: Adaimageprocessor
--- Ada.Text_IO - Text output, used for printing error messages
--- Ada.Strings.Unbounded - String handling, used to compose error messages
--- Ada.Command_Line - Return exit codes
--- GNAT.Time_Stamp - Prints an ISO-conformant time stamp,
--- note: _Ada.Calendar_ cannot be used here due to Ravenscar-restrictions
---------------------------------------------------------------------------------
-with Ada.Text_IO;
-with Ada.Strings.Unbounded;
-with Ada.Command_Line;
-with GNAT.Time_Stamp;
+private with Ada.Text_IO;
+private with Ada.Strings.Unbounded;
+private with Ada.Command_Line;
+private with GNAT.Time_Stamp;
 
 
 package body Adaimageprocessor is

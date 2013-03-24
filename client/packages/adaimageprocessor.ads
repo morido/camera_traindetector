@@ -13,10 +13,13 @@
 -- Ada.Exceptions - Handle the raised exceptions in Error()
 -- Ada.Interrupts.Names - Interface to named interrupts
 -- System - For checks of the platform this program runs on
+-- Ada.Streams - not used in this file; but stores imagedata in various other
+-- files
 --------------------------------------------------------------------------------
 with Ada.Exceptions;
-with Ada.Interrupts.Names;
+private with Ada.Interrupts.Names;
 with System;
+with Ada.Streams;
 
 package Adaimageprocessor is
 
@@ -37,6 +40,7 @@ package Adaimageprocessor is
    pragma Unreserve_All_Interrupts;
 
    package EXCEPT renames Ada.Exceptions;
+   package STREAMLIB renames Ada.Streams;
 
    -----------------------------------------------------------------------------
    -- Procedure: Error
@@ -132,7 +136,7 @@ private
       procedure InterruptHandler;
 
       --------------------------------------------------------------------------
-      -- Pragmas:
+      -- Pragmas: InterruptContoller
 
       --  Attach_Handler - attach the <InterruptHandler> to SIGINT, SIGTERM and
       --  SIGHUP
@@ -142,7 +146,7 @@ private
       pragma Attach_Handler(InterruptHandler, Ada.Interrupts.Names.SIGHUP);
 
       --------------------------------------------------------------------------
-      -- Variables:
+      -- Variables: InterruptController
       --
       -- ShutdownFlag - internal variable indicating if an interrupt has occured
       --------------------------------------------------------------------------

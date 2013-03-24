@@ -4,13 +4,6 @@
 --   Abstracts the <Adaimageprocessor.Protocol>-package.
 --------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
--- Headers: Adaimageprocessor.Communication
--- Ada.Streams - Methods to store arbitrary data (i.e. the image)
--- Adaimageprocessor.Communication.Protocol - FIXME
---------------------------------------------------------------------------------
--- with Ada.Streams; FIXME, needed here or inherited from parent?
-
 --- only testing FIXME; for file write
 with Ada.Streams.Stream_IO;
 -- END test
@@ -21,7 +14,7 @@ package Adaimageprocessor.Protocol.Imagetransfer is
    -- Types: Adaimageprocessor.Communication
    --  Image - A datatype which can hold the entire image
    -----------------------------------------------------------------------------
-   subtype Image is Ada.Streams.Stream_Element_Array (1 .. Ada.Streams.Stream_Element_Offset(Number_Of_Chunks'Last * Image_Chunk_Data'Length));
+   subtype Image is STREAMLIB.Stream_Element_Array (1 .. STREAMLIB.Stream_Element_Offset(Number_Of_Chunks'Last * Image_Chunk_Data'Length));
 
    -----------------------------------------------------------------------------
    -- Group: Client_Contoller
@@ -29,29 +22,28 @@ package Adaimageprocessor.Protocol.Imagetransfer is
    --  Task to run the actual client
    -----------------------------------------------------------------------------
    task Imagetransfer_Controller is
+      -- FIXME calculate actual Storage_Size needed
       pragma Storage_Size ( 8192*1024 );
    end Imagetransfer_Controller;
 
    -----------------------------------------------------------------------------
    -- Function: Return_Image
    -- Purpose:
-   --   Return an image from the server (camera). The image size may be
-   --   specified. The function then only returns a subimage (cropped area of
-   --   the entire image).
+   --   Return an image from the server (camera).
    --
    -- Effects:
    --   FIXME complete list what it does
-   --   *Merely assembles the chunks from
-   --    <Adaimageprocessor.Protocol.Requst_Chunks>
+   --   * Merely assembles the chunks from
+   --    <Adaimageprocessor.Protocol.Request_Chunks>
    --
    -- Parameters:
-   --  Subimage_Dimensions - A record specifying the subimage; see
-   --  <Adaimageprocessor.Communication.Protocol.Request_Next_Image>
+   --  Subimage_Dimensions - A record specifying the dimensions of the ROI; see
+   --  <Adaimageprocessor.Protocol.Request_Next_Image>
    --
    -- Exceptions:
    --   FIXME
    -----------------------------------------------------------------------------
-   function Return_Image ( Subimage_Dimensions : Image_Dimensions )
+   function Return_Image ( Subimage_Dimensions : in Image_Dimensions )
 			 return Image;
 
    -- FIXME: Missing doc; not for production code anyways
@@ -74,8 +66,8 @@ private
    -----------------------------------------------------------------------------
    -- Procedure: Setup
    -- Purpose:
-   --   Check if the program can run on this particular architecture, allocate
-   --   space for variables, initialize socket-connection
+   --   Check if the program can run on this particular architecture,
+   --   initialize socket-connection
    --
    -- Parameters:
    --   none.
@@ -84,7 +76,7 @@ private
    --   nothing.
    --
    -- Exceptions:
-   --   PLATFORM_ERROR
+   --   PLATFORM_ERROR - indicates the program will not run on this platform
    -----------------------------------------------------------------------------
    procedure Setup;
 

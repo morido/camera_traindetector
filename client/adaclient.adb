@@ -4,8 +4,6 @@
 --   This is the main client file which performs the image-requests from the
 --   server, applies the detection algorithm and finally returns the presence
 --   and position of a train within the received picture.
---
--- Effects:
 --   It is expected to run this as a service on a dedicated machine
 --
 -- Performance:
@@ -22,13 +20,8 @@ with Adaimageprocessor.Protocol.Imagetransfer;
 -- Procedure: Adaclient
 --
 -- Purpose:
---   Main program, does nothing.
---
--- Effects:
---   To be launched automatically once the program starts.
---
--- Exceptions:
---   others
+--  Main program, does nothing. Actual work is done within tasks, which are
+--  implicitely startet by this environment-task.
 -------------------------------------------------------------------------------
 procedure Adaclient is
 begin

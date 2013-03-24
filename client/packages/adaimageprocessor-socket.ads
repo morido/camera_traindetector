@@ -1,5 +1,6 @@
 --------------------------------------------------------------------------------
 -- Package: Adaimageprocessor.Socket
+--
 -- Purpose:
 --   Handle the raw communication between the server (i.e. the camera) and the
 --   client (this program)
@@ -25,10 +26,8 @@
 --------------------------------------------------------------------------------
 -- Headers: Adaimageprocessor.Protocol.Socket
 -- GNAT.Sockets - Socket communication
--- Ada.Streams - Work with arbitrary streamed data
 --------------------------------------------------------------------------------
 with GNAT.Sockets;
-with Ada.Streams;
 
 package Adaimageprocessor.Socket is
 
@@ -46,8 +45,16 @@ package Adaimageprocessor.Socket is
    -- Types: Adaimageprocessor.Socket
    --
    -----------------------------------------------------------------------------
-   subtype Transmittable_Data_Array_Size is Ada.Streams.Stream_Element_Offset range 1 .. Ada.Streams.Stream_Element_Offset(MAX_PACKET_SIZE);
-   subtype Transmittable_Data_Array is Ada.Streams.Stream_Element_Array(Transmittable_Data_Array_Size'Range);
+   subtype Transmittable_Data_Array_Size is STREAMLIB.Stream_Element_Offset range 1 .. STREAMLIB.Stream_Element_Offset(MAX_PACKET_SIZE);
+   subtype Transmittable_Data_Array is STREAMLIB.Stream_Element_Array(Transmittable_Data_Array_Size'Range);
+
+
+   -----------------------------------------------------------------------------
+   -- Variables: Adaimageprcessor.Socket
+   --
+   -- CONNECTION_ERROR - default exception raised by subprograms of this package
+   -----------------------------------------------------------------------------
+   CONNECTION_ERROR : exception;
 
 
    -----------------------------------------------------------------------------
@@ -107,7 +114,7 @@ package Adaimageprocessor.Socket is
    --   <Raw_Receiver>
    --
    -- Effects:
-   --   attempts <MAX_CONNECTION_RETRIES> times to receive data
+   --   attempts <SettingsManger.Get_Tries> times to receive data
    --
    -- Parameters:
    --   None.
@@ -117,23 +124,86 @@ package Adaimageprocessor.Socket is
    --
    -- Exceptions:
    --  CONNECTION_ERROR - raised if no data was received after
-   --  <MAX_CONNECTION_RETRIES> retries
+   --  <SettingsManager.Get_Tries>
    -----------------------------------------------------------------------------
-   function Receive_Data return Ada.Streams.Stream_Element_Array;
+   function Receive_Data return STREAMLIB.Stream_Element_Array;
+
+   -----------------------------------------------------------------------------
+   -- Package: SettingsManager
+   --
+   -- Purpose:
+   --   Manage timeouts and retries applicable to the UDP-Transfer
+   -----------------------------------------------------------------------------
+   package SettingsManager is
+
+      --------------------------------------------------------------------------
+      -- Function: Burst_Transfer
+      -- Purpose:
+      --   Sets (Parameter true) or unsets (Parameter false) a send/receive-
+      --   timeout and a retry-count.
+      --   Set to true for image-transfers; false for everything else.
+      --
+      -- Parameters:
+      --   Activate - true for active burst-transfers, false for normal
+      --   operation
+      --
+      -- Returns:
+      --   Nothing.
+      --
+      --------------------------------------------------------------------------
+      procedure Burst_Transfer ( Activate : in Boolean );
+
+      --------------------------------------------------------------------------
+      -- Function: Get_Tries
+      --
+      -- Purpose:
+      --   Getter-Function for the current value of connection-tries
+      --
+      -- Parameters:
+      --   None.
+      --
+      -- Returns:
+      --   <connection_tries>
+      --------------------------------------------------------------------------
+      function Get_Tries return Positive;
+
+
+   private
+      --------------------------------------------------------------------------
+      -- Section: Private
+      --------------------------------------------------------------------------
+
+      --------------------------------------------------------------------------
+      -- Constants: SettingsManager
+      --
+      -- SOCKET_TIMEOUT_MAX - How long to wait for a datagram to arrive; in
+      -- seconds; non-burst-mode
+      -- SOCKET_TIMEOUT_MIN - How long to wait for a datagram to arrive; in
+      -- seconds; burst-mode
+      -- CONNECTION_TRIES_MAX - How often the program should try to establish a
+      -- connection to the server; non-burst-mode
+      -- CONNECTION_TRIES_MIN - How often the program should try to establish a
+      -- connection to the server; burst-mode
+      --------------------------------------------------------------------------
+      SOCKET_TIMEOUT_MAX : constant Duration := 0.5;
+      SOCKET_TIMEOUT_MIN : constant Duration := 0.01;
+      CONNECTION_TRIES_MAX : constant Positive := 5;
+      CONNECTION_TRIES_MIN : constant Positive := 1;
+
+      --------------------------------------------------------------------------
+      -- Variables: SettingsManager
+      --
+      -- connection_tries - the currently effective value for the number of
+      -- connection tries
+      --------------------------------------------------------------------------
+      connection_tries : Positive := CONNECTION_TRIES_MAX;
+
+   end SettingsManager;
 
 private
    -----------------------------------------------------------------------------
    -- Section: Private
    -----------------------------------------------------------------------------
-
-   -----------------------------------------------------------------------------
-   -- Constants: Adaimageprocessor.Socket
-   -- SOCKET_TIMEOUT - How long to wait for a datagram to arrive; in seconds
-   -- MAX_CONNECTION_RETRIES : the maximum number of connection retries before
-   --   the program terminates with an error message
-   -----------------------------------------------------------------------------
-   SOCKET_TIMEOUT : constant Duration := 0.5;
-   MAX_CONNECTION_RETRIES : constant Natural := 5;
 
    -----------------------------------------------------------------------------
    -- Variables: Adaimageprocessor.Socket
@@ -144,13 +214,12 @@ private
    -- <Adaimageprocessor.Socket.Open_Socket> and used by all other subprograms
    -- in this package to access the socket.
    -- SocketIsSetUp - Variable indicating whether the socket has been
-   -- initialized, set by <Open_Socket>, unset by <Close_Socket>
-   -- CONNECTION_ERROR - default exception raised by subprograms of this package
+   -- initialized, set by <Adaimageprocessor.Socket.Open_Socket>, unset by
+   -- <Adaimageprocessor.Socket.Close_Socket>
    -----------------------------------------------------------------------------
    Server : GSOCK.Sock_Addr_Type;
    Sockethandler : GSOCK.Socket_Type;
    SocketIsSetUp : Boolean := False;
-   CONNECTION_ERROR : exception;
 
    -----------------------------------------------------------------------------
    -- Procedure: Send_Data
@@ -168,7 +237,7 @@ private
    -- Exceptions:
    --   Socket_Error.
    -----------------------------------------------------------------------------
-   procedure Send_Data(Data_To_Send : in Ada.Streams.Stream_Element_Array);
+   procedure Send_Data(Data_To_Send : in STREAMLIB.Stream_Element_Array);
 
    -----------------------------------------------------------------------------
    -- Function: Raw_Receiver
@@ -189,7 +258,7 @@ private
    -- Exceptions:
    --   None.
    -----------------------------------------------------------------------------
-   function Raw_Receiver return Ada.Streams.Stream_Element_Array;
+   function Raw_Receiver return STREAMLIB.Stream_Element_Array;
 
    -----------------------------------------------------------------------------
    -- Function: Raw_Receiver

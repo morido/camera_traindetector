@@ -7,27 +7,20 @@
 -- Effects:
 -- Abstracts the underlying <Adaimageprocessor.Protocol.Socket>
 -- package.
---
 --------------------------------------------------------------------------------
 
 
 --------------------------------------------------------------------------------
 -- Headers: Adaimageprocessor.Protocol
--- Ada.Strings - Functions for String handling
 -- Ada.Strings.Fixed - Functions for Strings with fixed length
--- Ada.Streams - Work with arbitrary streamed data
 -- Adaimageprocessor.Socket - Handles the raw UDP
 -- socket communication
 --------------------------------------------------------------------------------
-with Ada.Strings;
-with Ada.Strings.Fixed;
-with Ada.Streams;
+private with Ada.Strings.Fixed;
 with Adaimageprocessor.Socket;
 
 package Adaimageprocessor.Protocol is
    package SOCKETCOMM renames Adaimageprocessor.Socket;
-   package STRINGLIB renames Ada.Strings;
-   package STRINGFIXEDLIB renames Ada.Strings.Fixed;
 
    -----------------------------------------------------------------------------
    -- Package: Adaimageprocessor.Protocol
@@ -62,17 +55,14 @@ package Adaimageprocessor.Protocol is
 	 Bottom_Right_Y : Height_Of_Image;
       end record;
 
-   use type Ada.Streams.Stream_Element_Offset;
+   use type STREAMLIB.Stream_Element_Offset;
    subtype Image_Chunk_Data is SOCKETCOMM.Transmittable_Data_Array;
-   subtype Image_Chunk_Data_NoNumber is Ada.Streams.Stream_Element_Array(SOCKETCOMM.Transmittable_Data_Array'First+4 .. SOCKETCOMM.Transmittable_Data_Array'Last-1);
+   subtype Image_Chunk_Data_NoNumber is STREAMLIB.Stream_Element_Array(SOCKETCOMM.Transmittable_Data_Array'First+4 .. SOCKETCOMM.Transmittable_Data_Array'Last-1);
 
    type Image_Chunks_type is array ( Number_Of_Chunks'Range ) of Image_Chunk_Data_NoNumber;
-   --type Memory_Access is access Image_Chunks;
-   --Memory_Access_Pointer : Memory_Access := new Image_Chunks;
-   --Image_Chunks_Data : Image_Chunks renames Memory_Access_Pointer.all; -- konkrete daten hier rein
    type Chunk_Data is record
       Image_Chunks : Image_Chunks_type;
-      Last_Chunk_Offset : Ada.Streams.Stream_Element_Offset;
+      Last_Chunk_Offset : STREAMLIB.Stream_Element_Offset;
    end record;
 
 
@@ -81,9 +71,6 @@ package Adaimageprocessor.Protocol is
    -- Purpose:
    --   Ask the server to internally grab a new image from the camera and
    --   prepare it for transmission (i.e. crop it to the given size)
-   --
-   -- Effects:
-   --   FIXME.
    --
    -- Parameters:
    --  Subimage_Dimensions - a record containing the upper left and lower right
@@ -98,12 +85,49 @@ package Adaimageprocessor.Protocol is
    --  left counterpart)
    --  CommunicationError - The server did not answer the request correctly
    -----------------------------------------------------------------------------
-   function Request_Next_Image ( Subimage_Dimensions : Image_Dimensions )
+   function Request_Next_Image ( Subimage_Dimensions : in Image_Dimensions )
 			       return Number_Of_Chunks;
-
 
    -----------------------------------------------------------------------------
    -- Function: Request_Chunks
+   --
+   -- Purpose:
+   --   Abstracts <Adaimageprocessor.Protocol.Request_Chunks_Raw> and adds
+   --   exception handling, i.e. handles
+   --   <Adaimageprocessor.Socket.CONNECTION_ERROR> appropriately (try transfer
+   --   again)
+   --
+   -- Note:
+   --   Implementation similar to <Adaimageprocessor.Socket.Receive_Data>
+   --
+   -- Parameters:
+   --   Chunks - How many chunks to receive
+   --
+   -- Returns:
+   --   The image chunks in an array.
+   --
+   -- Exceptions:
+   --   Propagates <Adaimageprocessor.Socket.CONNECTION_ERROR> if transfer
+   --   failed
+   -----------------------------------------------------------------------------
+   function Request_Chunks ( Chunks : in Number_Of_Chunks ) return Chunk_Data;
+
+private
+   -----------------------------------------------------------------------------
+   -- Section: Private
+   -----------------------------------------------------------------------------
+
+   -----------------------------------------------------------------------------
+   -- Constants: Adaimageprocessor.Protocol
+   --
+   -- MAX_REQUEST_CHUNKS_TRIES - How often should the program try to receive an
+   -- entire image before it exits with an error-message
+   -----------------------------------------------------------------------------
+   MAX_REQUEST_CHUNKS_TRIES : constant Positive := 2;
+
+   -----------------------------------------------------------------------------
+   -- Function: Request_Chunks_Raw
+   --
    -- Purpose:
    --   Requests all chunks subsequently.
    --
@@ -112,45 +136,46 @@ package Adaimageprocessor.Protocol is
    --
    -- Returns:
    --   The image chunks in an array.
+   --
+   -- Exceptions:
+   --   SOCKETCOMM.CONNECTION_ERROR - if no data was received within a given
+   --   timeout
    -----------------------------------------------------------------------------
-   function Request_Chunks ( Chunks : in Number_Of_Chunks ) return Chunk_Data;
+   function Request_Chunks_Raw ( Chunks : in Number_Of_Chunks )
+                                return Chunk_Data;
 
-
-private
-   -----------------------------------------------------------------------------
-   -- Section: Private
-   -----------------------------------------------------------------------------
 
    -----------------------------------------------------------------------------
    -- Function: Process_Image_Size
+   --
    -- Purpose:
    --   Helper function to pad the specified image size correctly to
-   --   four characters
+   --   four characters, i.e. do a special integer to string casting
    --
    -- Parameters:
    --   Size - The number to be padded
    --
    -- Returns:
-   --   A four character string containing value of <Process_Image_Size.Size>
+   --   A four character string containing the value of _Size_
    --   padded with zeroes from the left.
    --
    -- Exceptions:
-   --   Length_Error - The input parameter <Process_Image_Size.Size> has a value
+   --   Length_Error - The input parameter _Size_ has a value
    --   greater than 9999
-   -- FIXME
    -----------------------------------------------------------------------------
    function Process_Image_Size ( Size : in Natural ) return String;
 
    -----------------------------------------------------------------------------
-   -- Procedure: Camera_Error
+   -- Function: Camera_Error
+   --
    -- Purpose:
-   --   Processes error message received from the Camera
+   --   Processes error messages received from the Camera
    --
    -- Effects:
    --   FIXME
    --
    -- Parameters:
-   --   Erroressage - A Stream containing the current received packet.
+   --   Erroressage - A Stream containing a packet with an error message.
    --
    -- Returns:
    --   A string with the error message
@@ -158,6 +183,6 @@ private
    -- Exceptions:
    --   None.
    -----------------------------------------------------------------------------
-   function Camera_Error (Errormessage: in Image_Chunk_Data) return String;
+   function Camera_Error (Errormessage: in STREAMLIB.Stream_Element_Array) return String;
 
 end Adaimageprocessor.Protocol;

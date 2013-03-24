@@ -5,9 +5,7 @@ package body Adaimageprocessor.Socket is
    begin
       GSOCK.Initialize;
       GSOCK.Create_Socket(Sockethandler, GSOCK.Family_Inet, GSOCK.Socket_Datagram);
-      GSOCK.Set_Socket_Option(Socket => Sockethandler,
-			      Option => (Name    => GNAT.Sockets.Receive_Timeout,
-					 Timeout => SOCKET_TIMEOUT));
+	-- FIXME: hier war mal das timeout setting
       Server.Addr := GSOCK.Inet_Addr(Server_IP);
       Server.Port := GSOCK.Port_Type(Server_Port);
       SocketIsSetUp := True;
@@ -22,19 +20,19 @@ package body Adaimageprocessor.Socket is
    end Close_Socket;
 
    procedure Send_String(String_To_Send : in String) is
-      Array_Temp : Ada.Streams.Stream_Element_Array(0 .. Ada.Streams.Stream_Element_Offset(String_To_Send'Last));
+      Array_Temp : STREAMLIB.Stream_Element_Array(0 .. STREAMLIB.Stream_Element_Offset(String_To_Send'Last));
       -- to avoid indexing errors
-      use type Ada.Streams.Stream_Element_Offset;
-      Array_Temp_Indexer : Ada.Streams.Stream_Element_Offset := Array_Temp'First;
+      use type STREAMLIB.Stream_Element_Offset;
+      Array_Temp_Indexer : STREAMLIB.Stream_Element_Offset := Array_Temp'First;
       LENGTH_EXCEPTION : exception;
    begin
       CheckSocketSetUp;
 
-      -- FIXME: check about "* 8" -- correct here?!
-      if String_To_Send'Size > MAX_PACKET_SIZE * 8 then
+      if String_To_Send'Size > MAX_PACKET_SIZE then
 	 raise LENGTH_EXCEPTION with "Given string is too long to transmit.";
       end if;
 
+      -- FIXME faster alternative available?
       -- cast the string to the stream array
       for Index in String_To_Send'Range loop
 	 Array_Temp(Array_Temp_Indexer) := Character'Pos(String_To_Send(Index));
@@ -46,35 +44,58 @@ package body Adaimageprocessor.Socket is
 
    end Send_String;
 
-   function Receive_Data return Ada.Streams.Stream_Element_Array is
-       subtype Valid_Connection_Retries is Natural range 0 .. MAX_CONNECTION_RETRIES;
-       While_Index : Valid_Connection_Retries := Valid_Connection_Retries'First;
+   function Receive_Data return STREAMLIB.Stream_Element_Array is
+      subtype Valid_Connection_Tries is Positive range Positive'First .. SettingsManager.Get_Tries;
+      While_Index : Valid_Connection_Tries := Valid_Connection_Tries'First;
    begin
       CheckSocketSetUp;
 
-       -- try to receive some data
-       while While_Index < MAX_CONNECTION_RETRIES loop
-	  begin
-            AllowShutdown;
-            declare
-               Return_Value : Ada.Streams.Stream_Element_Array := Raw_Receiver;
-            begin
-               return Return_Value;
-            exception
-               when GSOCK.SOCKET_ERROR =>
+      -- try to receive some data
+      loop
+         begin
+            return Raw_Receiver;
+         exception
+            when GSOCK.Socket_Error =>
+               if While_Index < Valid_Connection_Tries'Last then
                   While_Index := While_Index + 1;
-            end;
-	  end;
-       end loop;
+               else
+                  raise CONNECTION_ERROR with "No replies from server. Giving up...";
+               end if;
+         end;
+      end loop;
 
-       raise CONNECTION_ERROR with "No replies from server. Giving up...";
-    end Receive_Data;
+   end Receive_Data;
 
 
--- private part
+   package body SettingsManager is
 
-   procedure Send_Data(Data_To_Send : in Ada.Streams.Stream_Element_Array) is
-      Offset : Ada.Streams.Stream_Element_Offset;
+      procedure Burst_Transfer ( Activate : in Boolean ) is
+      begin
+         if Activate then
+            GSOCK.Set_Socket_Option(Socket => Sockethandler,
+                                    Option => (Name    => GNAT.Sockets.Receive_Timeout,
+                                               Timeout => SOCKET_TIMEOUT_MIN));
+            connection_tries := CONNECTION_TRIES_MIN;
+         else
+            GSOCK.Set_Socket_Option(Socket => Sockethandler,
+                                    Option => (Name    => GNAT.Sockets.Receive_Timeout,
+                                               Timeout => SOCKET_TIMEOUT_MAX));
+            connection_tries := CONNECTION_TRIES_MAX;
+         end if;
+      end Burst_Transfer;
+
+      function Get_Tries return Positive is
+      begin
+         return connection_tries;
+      end Get_Tries;
+
+   end SettingsManager;
+
+
+-- private
+
+   procedure Send_Data(Data_To_Send : in STREAMLIB.Stream_Element_Array) is
+      Offset : STREAMLIB.Stream_Element_Offset;
    begin
       GSOCK.Send_Socket(Socket => Sockethandler,
 		  Item => Data_To_Send,
@@ -82,19 +103,19 @@ package body Adaimageprocessor.Socket is
 		  To => Server);
     end Send_Data;
 
-   function Raw_Receiver return Ada.Streams.Stream_Element_Array is
+   function Raw_Receiver return STREAMLIB.Stream_Element_Array is
       Received_Data : Transmittable_Data_Array;
-      Offset : Ada.Streams.Stream_Element_Offset;
-      use type Ada.Streams.Stream_Element_Offset; -- for arithmetics
+      Offset : STREAMLIB.Stream_Element_Offset;
+      use type STREAMLIB.Stream_Element_Offset; -- for arithmetics
    begin
       GSOCK.Receive_Socket(Socket => Sockethandler,
 			   Item => Received_Data,
 			   Last => Offset,
                            From => Server);
-      -- last Byte is Null-Terminator, we truncate it here
-      return Received_Data( 1 .. Offset-1 );
-
       -- Exception : Socket_Error propagated!
+
+      -- last Byte is Null-Terminator, we truncate it here
+      return Received_Data( Transmittable_Data_Array'First .. Offset-1 );
    end Raw_Receiver;
 
    procedure CheckSocketSetUp is

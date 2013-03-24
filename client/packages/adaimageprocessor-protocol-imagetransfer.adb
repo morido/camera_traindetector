@@ -3,11 +3,11 @@ package body Adaimageprocessor.Protocol.Imagetransfer is
    task body Imagetransfer_Controller is
    begin
       Setup;
-      loop
+      --loop
          AllowShutdown; -- has to be called once (initialization phase)
          Write_Image_To_File;
-	 exit when InterruptController.Shutdown_Requested;
-      end loop;
+	 --exit when InterruptController.Shutdown_Requested;
+      --end loop;
    exception
       when Error: END_TASK =>
 	 Cleanup;
@@ -15,7 +15,7 @@ package body Adaimageprocessor.Protocol.Imagetransfer is
 	 Adaimageprocessor.Error(Error);
    end Imagetransfer_Controller;
 
-   function Return_Image ( Subimage_Dimensions : Image_Dimensions )
+   function Return_Image ( Subimage_Dimensions : in Image_Dimensions )
                           return Image is
       pragma Warnings(Off); -- FIXME; only for testing to suppress warning about Image1
       Image1 : Image;
@@ -28,7 +28,7 @@ package body Adaimageprocessor.Protocol.Imagetransfer is
       Dimensions : Image_Dimensions;
       Chunkscount : Number_Of_Chunks;
 
-      File : Ada.Streams.Stream_IO.File_Type;
+      File : STREAMLIB.Stream_IO.File_Type;
    begin
       -- write all our UDP-packets to a file
       Dimensions.Top_Left_X := 0;
@@ -38,24 +38,23 @@ package body Adaimageprocessor.Protocol.Imagetransfer is
 
       Chunkscount := Request_Next_Image(Dimensions);
       declare
-         Image_Data : Chunk_Data := Request_Chunks(Chunkscount);
+         Image_Data : Chunk_Data := Request_Chunks(Chunks => Chunkscount);
          filename : String := "/tmp/test.out";
       begin
 
-	 Ada.Streams.Stream_IO.Create
+	 STREAMLIB.Stream_IO.Create
 	   (File => File,
 	    Name => filename,
-	    Mode => Ada.Streams.Stream_IO.Out_File);
+	    Mode => STREAMLIB.Stream_IO.Out_File);
 
 	 for IndexA in Image_Data.Image_Chunks'First..Image_Data.Image_Chunks'Last-1 loop
-	    -- FIXME: Does the following stop on EOF?
-	    Ada.Streams.Stream_IO.Write(File, Image_Data.Image_Chunks(IndexA));
+	    STREAMLIB.Stream_IO.Write(File, Image_Data.Image_Chunks(IndexA));
 	 end loop;
          -- very last chunk
-         Ada.Streams.Stream_IO.Write(File, Image_Data.Image_Chunks(Image_Data.Image_Chunks'Last)(Image_Chunk_Data_NoNumber'First..Image_Data.Last_Chunk_Offset));
+         STREAMLIB.Stream_IO.Write(File, Image_Data.Image_Chunks(Image_Data.Image_Chunks'Last)(Image_Chunk_Data_NoNumber'First..Image_Data.Last_Chunk_Offset));
 
 
-	 Ada.Streams.Stream_IO.Close (File);
+	 STREAMLIB.Stream_IO.Close (File);
       end;
    end Write_Image_To_File;
 
