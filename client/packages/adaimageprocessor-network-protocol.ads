@@ -42,7 +42,8 @@ package Adaimageprocessor.Network.Protocol is
    --  dimension of <Number_Of_Chunks> that can hold the actual image chunks
    --  FIXME
    -----------------------------------------------------------------------------
-   subtype Number_Of_Chunks is Natural range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data!
+   subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
+
 
    subtype Width_Of_Image is Natural range 0 .. 960;
    subtype Height_Of_Image is Natural range 0 .. 1280;

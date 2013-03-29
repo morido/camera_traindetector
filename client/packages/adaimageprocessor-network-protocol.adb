@@ -1,5 +1,3 @@
-private with Ada.Strings.Unbounded; -- for Camera_Error()
-
 package body Adaimageprocessor.Network.Protocol is
    COMMUNICATION_ERROR : exception;
 
@@ -32,15 +30,14 @@ package body Adaimageprocessor.Network.Protocol is
       declare
          Return_Array : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
          Return_String : String (1 .. 4);
+         Process_Indicator : String(1 .. 2);
       begin
          -- process result
-         if Character'Val(Return_Array(1)) = 'I' and
-           Character'Val(Return_Array(2)) = 'N' then
+         Process_Indicator := Streamconverter.ToString(Input => Return_Array(1..2));
+
+         if Process_Indicator = "IN" then
             -- OK
-            Return_String := Character'Val(Return_Array(3))
-              & Character'Val(Return_Array(4))
-              & Character'Val(Return_Array(5))
-              & Character'Val(Return_Array(6));
+            Return_String := Streamconverter.ToString(Input => Return_Array(3..6));
             begin
                -- check if response is malformed (i.e. no valid digits)
                return Number_Of_Chunks'Value(Return_String);
@@ -48,9 +45,7 @@ package body Adaimageprocessor.Network.Protocol is
                when Error : CONSTRAINT_ERROR =>
                   raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
             end;
-
-         elsif Character'Val(Return_Array(1)) = 'E' and
-           Character'Val(Return_Array(2)) = 'R' then
+         elsif Process_Indicator = "ER" then
             -- specific error message from server
             raise COMMUNICATION_ERROR with Camera_Error(Return_Array);
          else
@@ -105,12 +100,8 @@ package body Adaimageprocessor.Network.Protocol is
             Current_Chunk_Number           : Number_Of_Chunks;
          begin
 
-            Current_Chunk_Number_As_String := Character'Val(Received_Data(1))
-              & Character'Val(Received_Data(2))
-              & Character'Val(Received_Data(3))
-              & Character'Val(Received_Data(4));
+            Current_Chunk_Number_As_String := Streamconverter.ToString(Input => Received_Data(1..4));
             Current_Chunk_Number := Number_Of_Chunks'Value(Current_Chunk_Number_As_String);
-
 
             -- automatically sort correctly and assign the correct slice (important for the very last chunk with may be shorter)
             Return_Record.Image_Chunks(Current_Chunk_Number)(Image_Chunk_Data_NoNumber'First..Received_Data'Last) := Received_Data(5..Received_Data'Last);
@@ -136,26 +127,9 @@ package body Adaimageprocessor.Network.Protocol is
    end Process_Image_Size;
 
    function Camera_Error (Errormessage: in STREAMLIB.Stream_Element_Array) return String is
-      --FIXME this function should take a different argument type and avoid the Escape_Character
-      package SU renames Ada.Strings.Unbounded;
-      use type STREAMLIB.Stream_Element_Offset; -- for while arithmethics
-      subtype Looping_Indexer_Type is STREAMLIB.Stream_Element_Offset range Image_Chunk_Data'First+2 .. Image_Chunk_Data'Last;
-      -- positions of Image_Chunk_Data 1 and 2 contain "ER"; not interesting
-      Looping_Indexer : Looping_Indexer_Type := Looping_Indexer_Type'First;
-
-      Escape_Character : constant Character := '|';
-      Return_String : constant SU.Unbounded_String := SU.To_Unbounded_String("");
-      CAMERA_ERROR : Exception;
-
    begin
-      --FIXME do something here
-
-      -- if first two letters are not "ER" raise an exception:
-      -- raise CAMERA_ERROR with "Internal error related to server->client communication."
-
-      -- conversion according to http://coding.derkeiler.com/Archive/Ada/comp.lang.ada/2004-03/0630.html
-      -- see also http://www.adaic.org/resources/add_content/docs/95style/html/sec_5/5-9-1.html
-      return SU.To_String(Return_String);
+      -- first two characters are irrelevant as they only contain "ER"
+      return Streamconverter.ToString(Errormessage(3..Errormessage'Last));
    end Camera_Error;
 
 end Adaimageprocessor.Network.Protocol;

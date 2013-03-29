@@ -22,10 +22,6 @@ package body Adaimageprocessor.Network.Socket is
    end Close_Socket;
 
    procedure Send_String(String_To_Send : in String) is
-      Array_Temp : STREAMLIB.Stream_Element_Array(0 .. STREAMLIB.Stream_Element_Offset(String_To_Send'Last));
-      -- to avoid indexing errors
-      use type STREAMLIB.Stream_Element_Offset;
-      Array_Temp_Indexer : STREAMLIB.Stream_Element_Offset := Array_Temp'First;
       LENGTH_EXCEPTION : exception;
    begin
       CheckSocketSetUp;
@@ -34,16 +30,8 @@ package body Adaimageprocessor.Network.Socket is
 	 raise LENGTH_EXCEPTION with "Given string is too long to transmit.";
       end if;
 
-      -- FIXME faster alternative available?
-      -- see http://en.wikibooks.org/wiki/Ada_Programming/Libraries/Ada.Streams -- TCP example
-      -- cast the string to the stream array
-      for Index in String_To_Send'Range loop
-	 Array_Temp(Array_Temp_Indexer) := Character'Pos(String_To_Send(Index));
-	 Array_Temp_Indexer := Array_Temp_Indexer +1;
-      end loop;
-
       -- call the actual data transmission routine
-      Send_Data(Array_Temp);
+      Send_Data(Data_To_Send => Streamconverter.ToStream(Input => String_To_Send));
 
    end Send_String;
 
