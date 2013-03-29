@@ -14,7 +14,7 @@
 
 pragma Profile (Ravenscar);
 pragma Ada_05;
-with Adaimageprocessor.Protocol.Imagetransfer;
+with Adaimageprocessor.Network.Protocol.Imagetransfer;
 
 -------------------------------------------------------------------------------
 -- Procedure: Adaclient
@@ -32,5 +32,3 @@ begin
    null;
 
 end Adaclient;
-
-
