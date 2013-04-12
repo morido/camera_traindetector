@@ -3,11 +3,11 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
    task body Imagetransfer_Controller is
    begin
       Setup;
-      --loop
+      loop
          AllowShutdown; -- has to be called once (initialization phase)
          Write_Image_To_File;
-	 --exit when InterruptController.Shutdown_Requested;
-      --end loop;
+	 exit when InterruptController.Shutdown_Requested;
+      end loop;
    exception
       when Error: END_TASK =>
 	 Cleanup;

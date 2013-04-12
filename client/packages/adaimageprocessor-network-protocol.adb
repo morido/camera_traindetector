@@ -17,11 +17,13 @@ package body Adaimageprocessor.Network.Protocol is
 
 
          -- "IN" is the identifier for this operation
-         Request_String := "IN"
+         Request_String := OperationIdentifiers.ToString(operation => OperationIdentifiers.Request_Next_Image)
            & Process_Image_Size(Subimage_Dimensions.Top_Left_X)
            & Process_Image_Size(Subimage_Dimensions.Top_Left_Y)
            & Process_Image_Size(Subimage_Dimensions.Bottom_Right_X)
            & Process_Image_Size(Subimage_Dimensions.Bottom_Right_Y);
+
+         -- FIXME we need to start here again in case the following send_string does not get through!
 
          -- data transmission
          SOCKETCOMM.Send_String(Request_String);
@@ -30,13 +32,16 @@ package body Adaimageprocessor.Network.Protocol is
       declare
          Return_Array : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
          Return_String : String (1 .. 4);
-         Process_Indicator : String(1 .. 2);
+         --Process_Indicator : String(1 .. 2);
+         Process_Indicator : OperationIdentifiers.receive_operations;
       begin
          -- process result
-         Process_Indicator := Streamconverter.ToString(Input => Return_Array(1..2));
+         Process_Indicator := OperationIdentifiers.ToEnumeration(operation => Return_Array(1..2));
 
-         if Process_Indicator = "IN" then
-            -- OK
+         --FIXME REWRITE!!! using operationidentifiers
+         case Process_Indicator is
+         when OperationIdentifiers.Request_Next_Image =>
+            -- wonderful, lets go
             Return_String := Streamconverter.ToString(Input => Return_Array(3..6));
             begin
                -- check if response is malformed (i.e. no valid digits)
@@ -45,13 +50,9 @@ package body Adaimageprocessor.Network.Protocol is
                when Error : CONSTRAINT_ERROR =>
                   raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
             end;
-         elsif Process_Indicator = "ER" then
-            -- specific error message from server
+         when OperationIdentifiers.Error =>
             raise COMMUNICATION_ERROR with Camera_Error(Return_Array);
-         else
-            -- unspecific error message from server
-            raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
-         end if;
+         end case;
       end;
    end Request_Next_Image;
 
@@ -82,6 +83,34 @@ package body Adaimageprocessor.Network.Protocol is
 
    -- private
 
+   package body OperationIdentifiers is
+      function ToString (operation : in operations) return String is
+      begin
+         case operation is
+            when Request_Chunks => return "IC";
+            when Request_Next_Image => return "IN";
+            when Error => return "ER";
+         end case;
+      end ToString;
+
+      function ToEnumeration(operation: in STREAMLIB.Stream_Element_Array) return receive_operations is
+         StringRepresentation : String(1..2);
+      begin
+         StringRepresentation := Streamconverter.ToString(Input => operation);
+
+         if StringRepresentation = "IN" then
+            return OperationIdentifiers.Request_Next_Image;
+         elsif StringRepresentation = "ER" then
+            return OperationIdentifiers.Error;
+         else
+            raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
+         end if;
+
+      end ToEnumeration;
+
+   end OperationIdentifiers;
+
+
    function Request_Chunks_Raw ( Chunks: in Number_Of_Chunks )
                                 return Chunk_Data is
       Return_Record : Chunk_Data;
@@ -90,7 +119,7 @@ package body Adaimageprocessor.Network.Protocol is
       -- FIXME add loop to try twice (i.e. let one transfer fail)
 
       -- start transfer
-      SOCKETCOMM.Send_String("IC");
+      SOCKETCOMM.Send_String(OperationIdentifiers.ToString(operation => OperationIdentifiers.Request_Chunks));
 
       -- populate Return_Array
       for Index_A in Number_Of_Chunks'First .. Chunks loop

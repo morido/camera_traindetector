@@ -124,7 +124,67 @@ private
    -- MAX_REQUEST_CHUNKS_TRIES - How often should the program try to receive an
    -- entire image before it exits with an error-message
    -----------------------------------------------------------------------------
-   MAX_REQUEST_CHUNKS_TRIES : constant Positive := 2;
+   --MAX_REQUEST_CHUNKS_TRIES : constant Positive := 2;
+   MAX_REQUEST_CHUNKS_TRIES : constant Positive := 1;
+
+   -----------------------------------------------------------------------------
+   -- Package: OperationIdentifiers
+   --
+   -- Purpose:
+   --   Manage the two character-long strings that identify each network
+   --   operation
+   -----------------------------------------------------------------------------
+   package OperationIdentifiers is
+
+      --------------------------------------------------------------------------
+      -- types: OperationIdentifiers
+      --
+      -- operations - enumeration type for all possible operations whic can be
+      -- performed via network
+      -- receive_operations - enumeration type for all possoble operation which
+      -- can be received via network
+      --------------------------------------------------------------------------
+      type operations is (
+                          Request_Chunks,
+                          Request_Next_Image,
+                          Error
+                         );
+      subtype receive_operations is operations range Request_Next_Image..Error;
+
+      --------------------------------------------------------------------------
+      -- Function: ToString
+      --
+      -- Purpose:
+      -- Convert the enumeration type <operations> into a string representation
+      -- suitable for transmission via the socket
+      --
+      -- Parameters:
+      -- operation - one of the <operations>
+      --
+      -- Returns:
+      -- A two-character string.
+      --------------------------------------------------------------------------
+      function ToString (operation : in operations) return String;
+
+
+      --------------------------------------------------------------------------
+      -- Function: ToEnumeration
+      --
+      -- Purpose:
+      -- Convert a two-element array received from the socket into its
+      -- enumerated representation of <receive_operations> suitable for a case
+      -- statement
+      --
+      -- Parameters:
+      -- operation - a two-character long array
+      --
+      -- Returns:
+      -- An <receive_operations>-equivalent
+      --------------------------------------------------------------------------
+      function ToEnumeration (operation: in STREAMLIB.Stream_Element_Array) return receive_operations;
+
+   end OperationIdentifiers;
+
 
    -----------------------------------------------------------------------------
    -- Function: Request_Chunks_Raw

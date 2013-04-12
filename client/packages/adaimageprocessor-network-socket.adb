@@ -64,12 +64,12 @@ package body Adaimageprocessor.Network.Socket is
       begin
          if Activate then
             GSOCK.Set_Socket_Option(Socket => Sockethandler,
-                                    Option => (Name    => GNAT.Sockets.Receive_Timeout,
+                                    Option => (Name    => GSOCK.Receive_Timeout,
                                                Timeout => SOCKET_TIMEOUT_MIN));
             connection_tries := CONNECTION_TRIES_MIN;
          else
             GSOCK.Set_Socket_Option(Socket => Sockethandler,
-                                    Option => (Name    => GNAT.Sockets.Receive_Timeout,
+                                    Option => (Name    => GSOCK.Receive_Timeout,
                                                Timeout => SOCKET_TIMEOUT_MAX));
             connection_tries := CONNECTION_TRIES_MAX;
          end if;

@@ -186,7 +186,8 @@ package Adaimageprocessor.Network.Socket is
       -- connection to the server; burst-mode
       --------------------------------------------------------------------------
       SOCKET_TIMEOUT_MAX : constant Duration := 0.5;
-      SOCKET_TIMEOUT_MIN : constant Duration := 0.01;
+      --SOCKET_TIMEOUT_MIN : constant Duration := 0.01; --FIXME good value?
+      SOCKET_TIMEOUT_MIN : constant Duration := 5.0;
       CONNECTION_TRIES_MAX : constant Positive := 5;
       CONNECTION_TRIES_MIN : constant Positive := 1;
 
