@@ -63,7 +63,7 @@ package Adaimageprocessor.Network is
       --  See https://groups.google.com/forum/?fromgroups=#!search/comp.lang.ada$20Stream_Element_Array$202$20String/comp.lang.ada/S0wzGdmZj2s/mv_cx6kC6REJ
       --
       -- Parameters:
-      --   Input - An Ada.Stream_Element_Array to be converted
+      --   Input - An Ada.Stream_Element_Array
       --
       -- Returns:
       --   A String with as many characters as the input had

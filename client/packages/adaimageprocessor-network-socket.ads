@@ -44,10 +44,18 @@ package Adaimageprocessor.Network.Socket is
    -----------------------------------------------------------------------------
    -- Types: Adaimageprocessor.Network.Socket
    --
+   -- Transmittable_Data_Array_Size - only used to make the following
+   -- <Transmittable_Data_Array>-expression shorter
+   -- Transmittable_Data_Array - an array to hold the data of an individual
+   -- network-packet
+   -- Number_Of_Chunks - how many individual parts (chunks) may a data transfer
+   -- be split into. Important for buffer-calculation in
+   -- <SettingsManager.Burst_Transfer_On>. Its 'Last may not be greater than
+   -- 9999.
    -----------------------------------------------------------------------------
    subtype Transmittable_Data_Array_Size is STREAMLIB.Stream_Element_Offset range 1 .. STREAMLIB.Stream_Element_Offset(MAX_PACKET_SIZE);
    subtype Transmittable_Data_Array is STREAMLIB.Stream_Element_Array(Transmittable_Data_Array_Size'Range);
-
+   subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
 
    -----------------------------------------------------------------------------
    -- Variables: Adaimageprcessor.Socket
@@ -137,21 +145,37 @@ package Adaimageprocessor.Network.Socket is
    package SettingsManager is
 
       --------------------------------------------------------------------------
-      -- Function: Burst_Transfer
+      -- Function: Burst_Transfer_On
+      --
       -- Purpose:
-      --   Sets (Parameter true) or unsets (Parameter false) a send/receive-
-      --   timeout and a retry-count.
-      --   Set to true for image-transfers; false for everything else.
+      --   Sets send/receive-timeout, a retry-count and appropriate buffers for
+      --   the image-transfer.
       --
       -- Parameters:
-      --   Activate - true for active burst-transfers, false for normal
-      --   operation
+      --   Chunknumber - how many chunks are to be transfered; used for
+      --   buffer-calculation
       --
       -- Returns:
       --   Nothing.
       --
       --------------------------------------------------------------------------
-      procedure Burst_Transfer ( Activate : in Boolean );
+      procedure Burst_Transfer_On ( Chunknumber : in Number_Of_Chunks );
+
+      --------------------------------------------------------------------------
+      -- Function: Burst_Transfer_Off
+      --
+      -- Purpose:
+      --   Sets send/receive-timeout, a retry-count and appropriate buffers for
+      --   everything but the actual image-transfer.
+      --
+      -- Parameters:
+      --   None.
+      --
+      -- Returns:
+      --   Nothing.
+      --
+      --------------------------------------------------------------------------
+      procedure Burst_Transfer_Off;
 
       --------------------------------------------------------------------------
       -- Function: Get_Tries
@@ -189,7 +213,7 @@ package Adaimageprocessor.Network.Socket is
       --SOCKET_TIMEOUT_MIN : constant Duration := 0.01; --FIXME good value?
       SOCKET_TIMEOUT_MIN : constant Duration := 5.0;
       CONNECTION_TRIES_MAX : constant Positive := 5;
-      CONNECTION_TRIES_MIN : constant Positive := 1;
+      CONNECTION_TRIES_MIN : constant Positive := 2;
 
       --------------------------------------------------------------------------
       -- Variables: SettingsManager

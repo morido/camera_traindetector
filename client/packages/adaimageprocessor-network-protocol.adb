@@ -13,10 +13,8 @@ package body Adaimageprocessor.Network.Protocol is
          Request_String : String(1 .. 18);
       begin
          -- unset burst-transfer mode
-         SOCKETCOMM.SettingsManager.Burst_Transfer(Activate => False);
+         SOCKETCOMM.SettingsManager.Burst_Transfer_Off;
 
-
-         -- "IN" is the identifier for this operation
          Request_String := OperationIdentifiers.ToString(operation => OperationIdentifiers.Request_Next_Image)
            & Process_Image_Size(Subimage_Dimensions.Top_Left_X)
            & Process_Image_Size(Subimage_Dimensions.Top_Left_Y)
@@ -32,13 +30,11 @@ package body Adaimageprocessor.Network.Protocol is
       declare
          Return_Array : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
          Return_String : String (1 .. 4);
-         --Process_Indicator : String(1 .. 2);
          Process_Indicator : OperationIdentifiers.receive_operations;
       begin
          -- process result
          Process_Indicator := OperationIdentifiers.ToEnumeration(operation => Return_Array(1..2));
 
-         --FIXME REWRITE!!! using operationidentifiers
          case Process_Indicator is
          when OperationIdentifiers.Request_Next_Image =>
             -- wonderful, lets go
@@ -61,7 +57,7 @@ package body Adaimageprocessor.Network.Protocol is
       While_Index : Positive := Valid_Connection_Tries'First;
    begin
       -- set burst mode
-      SOCKETCOMM.SettingsManager.Burst_Transfer(Activate => true);
+      SOCKETCOMM.SettingsManager.Burst_Transfer_On(Chunknumber => Chunks);
 
       -- try to receive an entire image, if it fails try MAX_REQUEST_CHUNK_TRIES-times again
       loop
@@ -117,6 +113,10 @@ package body Adaimageprocessor.Network.Protocol is
    begin
 
       -- FIXME add loop to try twice (i.e. let one transfer fail)
+      --
+      -- The problem is: we send something via send_string, but we only know if
+      -- it has gotten though if something is received afterwards. if not we
+      -- have to start here again // same goes for Request_Next_Image
 
       -- start transfer
       SOCKETCOMM.Send_String(OperationIdentifiers.ToString(operation => OperationIdentifiers.Request_Chunks));

@@ -3,13 +3,10 @@ package body Adaimageprocessor.Network.Socket is
 
    procedure Open_Socket(Server_IP : in String; Server_Port : in Positive) is
    begin
-      GSOCK.Initialize;
       GSOCK.Create_Socket(Sockethandler, GSOCK.Family_Inet, GSOCK.Socket_Datagram);
       Server.Addr := GSOCK.Inet_Addr(Server_IP);
       Server.Port := GSOCK.Port_Type(Server_Port);
       SocketIsSetUp := True;
-
-      -- FIXME reserve send/receive buffers like in C?
 
    end Open_Socket;
 
@@ -60,20 +57,34 @@ package body Adaimageprocessor.Network.Socket is
 
    package body SettingsManager is
 
-      procedure Burst_Transfer ( Activate : in Boolean ) is
+      procedure Burst_Transfer_On (Chunknumber : in Number_Of_Chunks) is
       begin
-         if Activate then
-            GSOCK.Set_Socket_Option(Socket => Sockethandler,
-                                    Option => (Name    => GSOCK.Receive_Timeout,
-                                               Timeout => SOCKET_TIMEOUT_MIN));
-            connection_tries := CONNECTION_TRIES_MIN;
-         else
-            GSOCK.Set_Socket_Option(Socket => Sockethandler,
-                                    Option => (Name    => GSOCK.Receive_Timeout,
-                                               Timeout => SOCKET_TIMEOUT_MAX));
-            connection_tries := CONNECTION_TRIES_MAX;
-         end if;
-      end Burst_Transfer;
+         GSOCK.Set_Socket_Option(Socket => Sockethandler,
+                                 Option => (Name    => GSOCK.Receive_Timeout,
+                                            Timeout => SOCKET_TIMEOUT_MIN));
+         connection_tries := CONNECTION_TRIES_MIN;
+
+         -- calculate the receive-buffer, it shall be as big as one image plus
+         -- the protocol overhead
+         -- this is a little conservative as the very last packet may be shorter
+         -- than MAX_PACKET_SIZE
+         -- Note: Setting this buffer large enough seems to be very vital for
+         -- Windows as Raw_Receiver may block indefinetly if the buffer
+         -- overflows. No such behaviour on *nix, though.
+         GSOCK.Set_Socket_Option(Socket => Sockethandler,
+                                 Option => (Name    => GSOCK.Receive_Buffer,
+                                            Size    => (Chunknumber * MAX_PACKET_SIZE)));
+      end Burst_Transfer_On;
+
+
+      procedure Burst_Transfer_Off is
+      begin
+         GSOCK.Set_Socket_Option(Socket => Sockethandler,
+                                 Option => (Name    => GSOCK.Receive_Timeout,
+                                            Timeout => SOCKET_TIMEOUT_MAX));
+         connection_tries := CONNECTION_TRIES_MAX;
+      end Burst_Transfer_Off;
+
 
       function Get_Tries return Positive is
       begin
@@ -104,6 +115,9 @@ package body Adaimageprocessor.Network.Socket is
 			   Last => Offset,
                            From => Server);
       -- Exception : Socket_Error propagated!
+
+      -- FIXME; what if the above blocks forever (happens on Windows if the receive-buffer is full)
+      -- if we are aiming for higher SIL we should probably have a second thread supervising this
 
       -- last Byte is Null-Terminator, we truncate it here
       return Received_Data( Transmittable_Data_Array'First .. Offset-1 );

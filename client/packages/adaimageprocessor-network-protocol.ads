@@ -42,11 +42,13 @@ package Adaimageprocessor.Network.Protocol is
    --  dimension of <Number_Of_Chunks> that can hold the actual image chunks
    --  FIXME
    -----------------------------------------------------------------------------
-   subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
+   --subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
 
 
    subtype Width_Of_Image is Natural range 0 .. 960;
    subtype Height_Of_Image is Natural range 0 .. 1280;
+
+   subtype Number_Of_Chunks is SOCKETCOMM.Number_Of_Chunks;
 
    type Image_Dimensions is
       record
@@ -124,8 +126,8 @@ private
    -- MAX_REQUEST_CHUNKS_TRIES - How often should the program try to receive an
    -- entire image before it exits with an error-message
    -----------------------------------------------------------------------------
-   --MAX_REQUEST_CHUNKS_TRIES : constant Positive := 2;
    MAX_REQUEST_CHUNKS_TRIES : constant Positive := 1;
+   --MAX_REQUEST_CHUNKS_TRIES : constant Positive := 2;
 
    -----------------------------------------------------------------------------
    -- Package: OperationIdentifiers
