@@ -36,7 +36,10 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
       Dimensions.Bottom_Right_X := 960;
       Dimensions.Bottom_Right_Y := 1280;
 
+      -- phase 1: set up the transfer
       Chunkscount := Request_Next_Image(Dimensions);
+
+      -- phase 2: actual image transfer
       declare
          Image_Data : Chunk_Data := Request_Chunks(Chunks => Chunkscount);
          filename : String := "/tmp/test.out";
@@ -71,7 +74,6 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
 
       -- initialize the socket
       SOCKETCOMM.Open_Socket(Server_IP, Server_Port);
-
 
    end Setup;
 

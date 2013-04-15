@@ -33,7 +33,7 @@ package body Adaimageprocessor.Network.Socket is
    end Send_String;
 
    function Receive_Data return STREAMLIB.Stream_Element_Array is
-      subtype Valid_Connection_Tries is Positive range Positive'First .. SettingsManager.Get_Tries;
+      subtype Valid_Connection_Tries is Positive range Positive'First .. SettingsManager.Get_Connection_Tries;
       While_Index : Valid_Connection_Tries := Valid_Connection_Tries'First;
    begin
       CheckSocketSetUp;
@@ -85,11 +85,15 @@ package body Adaimageprocessor.Network.Socket is
          connection_tries := CONNECTION_TRIES_MAX;
       end Burst_Transfer_Off;
 
+      function Get_Roundtrip_Tries return Positive is
+      begin
+         return ROUNDTRIP_TRIES;
+      end Get_Roundtrip_Tries;
 
-      function Get_Tries return Positive is
+      function Get_Connection_Tries return Positive is
       begin
          return connection_tries;
-      end Get_Tries;
+      end Get_Connection_Tries;
 
    end SettingsManager;
 

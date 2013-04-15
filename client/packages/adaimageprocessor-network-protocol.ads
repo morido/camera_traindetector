@@ -76,32 +76,29 @@ package Adaimageprocessor.Network.Protocol is
    --   prepare it for transmission (i.e. crop it to the given size)
    --
    -- Parameters:
-   --  Subimage_Dimensions - a record containing the upper left and lower right
-   --  corner of the requested subimage
+   --  ROI_Dimensions - a record containing the upper left and lower right
+   --  corner of the requested region of interest (i.e. a part of the entire
+   --  image)
    --
    -- Returns:
    --  The number of chunks this image will be split into.
    --
    -- Exceptions:
-   --  ImageDimensionError - The dimensions of the requested imaged do not make
-   --  sense (i.e. the lower right corner is left of/higher up than its upper
-   --  left counterpart)
-   --  CommunicationError - The server did not answer the request correctly
+   --  IMAGE_DIMENSION_ERROR - The dimensions of the requested imaged do not
+   --  make sense (i.e. the lower right corner is left of/higher up than its
+   --  upper left counterpart)
+   --  COMMUNICATION_ERROR - The server did not answer the request correctly or
+   --  transmitted a specific errormessage
+   --  SOCKETCOMM.CONNECTION_ERROR - no data was received within a given timeout
    -----------------------------------------------------------------------------
-   function Request_Next_Image ( Subimage_Dimensions : in Image_Dimensions )
+   function Request_Next_Image ( ROI_Dimensions : in Image_Dimensions )
 			       return Number_Of_Chunks;
 
    -----------------------------------------------------------------------------
    -- Function: Request_Chunks
    --
    -- Purpose:
-   --   Abstracts <Adaimageprocessor.Network.Protocol.Request_Chunks_Raw> and adds
-   --   exception handling, i.e. handles
-   --   <Adaimageprocessor.Network.Socket.CONNECTION_ERROR> appropriately (try transfer
-   --   again)
-   --
-   -- Note:
-   --   Implementation similar to <Adaimageprocessor.Network.Socket.Receive_Data>
+   --   Requests all chunks (= the image-data in small parts) subsequently.
    --
    -- Parameters:
    --   Chunks - How many chunks to receive
@@ -110,24 +107,25 @@ package Adaimageprocessor.Network.Protocol is
    --   The image chunks in an array.
    --
    -- Exceptions:
-   --   Propagates <Adaimageprocessor.Network.Socket.CONNECTION_ERROR> if transfer
-   --   failed
+   --   SOCKETCOMM.CONNECTION_ERROR - no data was received within a given
+   --   timeout
+   --   COMMUNICATION_ERROR - the received data was malformed or the server
+   --   transmitted a specific errormessage
    -----------------------------------------------------------------------------
    function Request_Chunks ( Chunks : in Number_Of_Chunks ) return Chunk_Data;
 
 private
    -----------------------------------------------------------------------------
-   -- Section: Private
+   -- Section: private
    -----------------------------------------------------------------------------
 
    -----------------------------------------------------------------------------
-   -- Constants: Adaimageprocessor.Network.Protocol
+   -- Variables : Adaimageprocessor.Network.Protocol
    --
-   -- MAX_REQUEST_CHUNKS_TRIES - How often should the program try to receive an
-   -- entire image before it exits with an error-message
+   -- COMMUNICATION_ERROR - raised if data was received but the result was not
+   -- as expected
    -----------------------------------------------------------------------------
-   MAX_REQUEST_CHUNKS_TRIES : constant Positive := 1;
-   --MAX_REQUEST_CHUNKS_TRIES : constant Positive := 2;
+   COMMUNICATION_ERROR : exception;
 
    -----------------------------------------------------------------------------
    -- Package: OperationIdentifiers
@@ -143,15 +141,26 @@ private
       --
       -- operations - enumeration type for all possible operations whic can be
       -- performed via network
-      -- receive_operations - enumeration type for all possoble operation which
-      -- can be received via network
+      -- phase1_operations - enumeration type for all possible operations which
+      -- can be performed during the first phase (Image-Size settings) of the
+      -- transfer
+      -- phase2_operations - enumeration type for all possible operations which
+      -- can be performed during the second phase (Bulk-Transfer) of the
+      -- transfer
       --------------------------------------------------------------------------
       type operations is (
                           Request_Chunks,
                           Request_Next_Image,
                           Error
                          );
-      subtype receive_operations is operations range Request_Next_Image..Error;
+      type phase1_operations is (
+                                  Request_Next_Image,
+                                  Error
+                                 );
+      type phase2_operations is (
+                                  Request_Chunks,
+                                  Error
+                                 );
 
       --------------------------------------------------------------------------
       -- Function: ToString
@@ -170,42 +179,60 @@ private
 
 
       --------------------------------------------------------------------------
-      -- Function: ToEnumeration
+      -- Function: ToEnumerationInit
       --
       -- Purpose:
       -- Convert a two-element array received from the socket into its
-      -- enumerated representation of <receive_operations> suitable for a case
+      -- enumerated representation of <request_operations> suitable for a case
       -- statement
       --
       -- Parameters:
       -- operation - a two-character long array
       --
       -- Returns:
-      -- An <receive_operations>-equivalent
+      -- A <phase1_operations>-equivalent
       --------------------------------------------------------------------------
-      function ToEnumeration (operation: in STREAMLIB.Stream_Element_Array) return receive_operations;
+      function ToEnumerationInit (operation: in STREAMLIB.Stream_Element_Array) return phase1_operations;
+
+
+      --------------------------------------------------------------------------
+      -- Function: ToEnumerationInit
+      --
+      -- Purpose:
+      -- Convert a two-element array received from the socket into its
+      -- enumerated representation of <request_operations> suitable for a case
+      -- statement
+      --
+      -- Parameters:
+      -- operation - a two-character long array
+      --
+      -- Returns:
+      -- A <phase2_operations>-equivalent
+      --------------------------------------------------------------------------
+      function ToEnumerationBulkTransfer (operation: in STREAMLIB.Stream_Element_Array) return phase2_operations;
+
+   private
+      --------------------------------------------------------------------------
+      -- section: private
+      --------------------------------------------------------------------------
+
+      --------------------------------------------------------------------------
+      -- Constants: OperationIdentifiers
+      --
+      -- OPcode_NextImage - the two-letter identifier used for the first phase
+      -- of the transmission process to initiate the transfer; short for
+      -- _I_mage _N_ext
+      -- OPcode_Chunks - the two-letter identifier used for the second phase of
+      -- the transmission process to transfer the actual imagedata; short for
+      -- _I_mage _C_hunks
+      -- OPcode_Error - the two-letter identifier indicating an error at the
+      -- server-side; may occur during both phases
+      --------------------------------------------------------------------------
+      OPcode_NextImage : constant String := "IN";
+      OPcode_Chunks : constant String := "IC";
+      OPcode_Error : constant String := "ER";
 
    end OperationIdentifiers;
-
-
-   -----------------------------------------------------------------------------
-   -- Function: Request_Chunks_Raw
-   --
-   -- Purpose:
-   --   Requests all chunks subsequently.
-   --
-   -- Parameters:
-   --   Chunks - How many chunks to receive
-   --
-   -- Returns:
-   --   The image chunks in an array.
-   --
-   -- Exceptions:
-   --   SOCKETCOMM.CONNECTION_ERROR - if no data was received within a given
-   --   timeout
-   -----------------------------------------------------------------------------
-   function Request_Chunks_Raw ( Chunks : in Number_Of_Chunks )
-                                return Chunk_Data;
 
 
    -----------------------------------------------------------------------------

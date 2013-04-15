@@ -140,7 +140,9 @@ package Adaimageprocessor.Network.Socket is
    -- Package: SettingsManager
    --
    -- Purpose:
-   --   Manage timeouts and retries applicable to the UDP-Transfer
+   --   Manage receive-timeouts and retries applicable to the UDP-Transfer;
+   --   Send-timeouts do not make sense because we are on UDP
+   --   (refer to http://forums.freebsd.org/showthread.php?t=19119)
    -----------------------------------------------------------------------------
    package SettingsManager is
 
@@ -178,7 +180,7 @@ package Adaimageprocessor.Network.Socket is
       procedure Burst_Transfer_Off;
 
       --------------------------------------------------------------------------
-      -- Function: Get_Tries
+      -- Function: Get_Roundtrip_Tries
       --
       -- Purpose:
       --   Getter-Function for the current value of connection-tries
@@ -189,12 +191,27 @@ package Adaimageprocessor.Network.Socket is
       -- Returns:
       --   <connection_tries>
       --------------------------------------------------------------------------
-      function Get_Tries return Positive;
+      function Get_Roundtrip_Tries return Positive;
+
+
+      --------------------------------------------------------------------------
+      -- Function: Get_Connection_Tries
+      --
+      -- Purpose:
+      --   Getter-Function for the current value of connection-tries
+      --
+      -- Parameters:
+      --   None.
+      --
+      -- Returns:
+      --   <connection_tries>
+      --------------------------------------------------------------------------
+      function Get_Connection_Tries return Positive;
 
 
    private
       --------------------------------------------------------------------------
-      -- Section: Private
+      -- Section: private
       --------------------------------------------------------------------------
 
       --------------------------------------------------------------------------
@@ -208,12 +225,15 @@ package Adaimageprocessor.Network.Socket is
       -- connection to the server; non-burst-mode
       -- CONNECTION_TRIES_MIN - How often the program should try to establish a
       -- connection to the server; burst-mode
+      -- ROUNDTRIP_TRIES - How often to perform a complete roundtrip (i.e. send
+      -- request wait for answer)
       --------------------------------------------------------------------------
       SOCKET_TIMEOUT_MAX : constant Duration := 0.5;
       --SOCKET_TIMEOUT_MIN : constant Duration := 0.01; --FIXME good value?
       SOCKET_TIMEOUT_MIN : constant Duration := 5.0;
       CONNECTION_TRIES_MAX : constant Positive := 5;
       CONNECTION_TRIES_MIN : constant Positive := 2;
+      ROUNDTRIP_TRIES : constant Positive := 2;
 
       --------------------------------------------------------------------------
       -- Variables: SettingsManager
@@ -227,7 +247,7 @@ package Adaimageprocessor.Network.Socket is
 
 private
    -----------------------------------------------------------------------------
-   -- Section: Private
+   -- Section: private
    -----------------------------------------------------------------------------
 
    -----------------------------------------------------------------------------
