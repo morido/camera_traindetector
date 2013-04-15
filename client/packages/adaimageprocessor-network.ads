@@ -9,6 +9,15 @@
 package Adaimageprocessor.Network is
 
    -----------------------------------------------------------------------------
+   -- Variables:
+   --
+   -- CAMERA_ERROR - raised if any error from the server is received; used in
+   -- <Adaimageprocessor.Network.Protocol.Receive_Data>
+   -----------------------------------------------------------------------------
+   CAMERA_ERROR : exception;
+
+
+   -----------------------------------------------------------------------------
    -- Package: Streamconverter
    --
    -- Purpose:
@@ -19,7 +28,7 @@ package Adaimageprocessor.Network is
       --------------------------------------------------------------------------
       -- Variables: Streamconverter
       --
-      -- CONVERSION_ERROR - Raised whenever an unchecked conversion does not
+      -- CONVERSION_ERROR - raised whenever an unchecked conversion does not
       -- work as expected
       --------------------------------------------------------------------------
       CONVERSION_ERROR : exception;

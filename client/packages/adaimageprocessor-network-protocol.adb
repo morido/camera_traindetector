@@ -33,7 +33,7 @@ package body Adaimageprocessor.Network.Protocol is
 
             Receive_Block :
             declare
-               Return_Array      : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
+               Return_Array      : constant STREAMLIB.Stream_Element_Array := Receive_Data;
                Return_String     : String (1 .. 4);
                Process_Indicator : OperationIdentifiers.phase1_operations;
             begin
@@ -51,8 +51,6 @@ package body Adaimageprocessor.Network.Protocol is
                      when Error : CONSTRAINT_ERROR =>
                         raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
                   end;
-               when OperationIdentifiers.Error =>
-                  raise COMMUNICATION_ERROR with Camera_Error(Return_Array);
                end case;
             exception
                when SOCKETCOMM.CONNECTION_ERROR =>
@@ -88,15 +86,13 @@ package body Adaimageprocessor.Network.Protocol is
                SOCKETCOMM.Send_String(OperationIdentifiers.ToString(operation => OperationIdentifiers.Request_Chunks));
                -- server has to reply with same contents
                declare
-                  Received_Data : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
+                  Received_Data : constant STREAMLIB.Stream_Element_Array := Receive_Data;
                   Process_Indicator : OperationIdentifiers.phase2_operations;
                begin
                   Process_Indicator := OperationIdentifiers.ToEnumerationBulkTransfer(operation => Received_Data(1..2));
                   case Process_Indicator is
                      when OperationIdentifiers.Request_Chunks =>
                         exit Initialize_Loop; -- fine, lets proceed
-                     when OperationIdentifiers.Error =>
-                        raise COMMUNICATION_ERROR with Camera_Error(Received_Data);
                   end case;
                end;
             exception
@@ -159,8 +155,6 @@ package body Adaimageprocessor.Network.Protocol is
          StringRepresentation := Streamconverter.ToString(Input => operation);
          if StringRepresentation = OPcode_NextImage then
             return OperationIdentifiers.Request_Next_Image;
-         elsif StringRepresentation = OPcode_Error then
-            return OperationIdentifiers.Error;
          else
             raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
          end if;
@@ -172,8 +166,6 @@ package body Adaimageprocessor.Network.Protocol is
          StringRepresentation := Streamconverter.ToString(Input => operation);
          if StringRepresentation = OPcode_Chunks then
             return OperationIdentifiers.Request_Chunks;
-         elsif StringRepresentation = OPcode_Error then
-            return OperationIdentifiers.Error;
          else
             raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
          end if;
@@ -195,12 +187,22 @@ package body Adaimageprocessor.Network.Protocol is
       return Return_String;
    end Process_Image_Size;
 
-   function Camera_Error (Errormessage: in STREAMLIB.Stream_Element_Array) return String is
+   function Receive_Data return STREAMLIB.Stream_Element_Array is
+      Return_Array : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
+      Compare_String : String(1..2);
    begin
-      -- first two characters are irrelevant as they only contain "ER"
-      -- the last one is a null-terminator which we do not need either
-      return Streamconverter.ToString(Errormessage(3..Errormessage'Last-1));
-   end Camera_Error;
+    -- FIXME; is there a chance that we can somehow hide SOCKETCOMM.Receive_Data away from outside this function?!
+
+      -- FIXME rewrite Compare_String using OperationIdentifiers
+      Compare_String := Streamconverter.ToString(Input => Return_Array(1..2));
+      if Compare_String = OperationIdentifiers.ToString(operation => OperationIdentifiers.Error) then
+         -- first two characters are irrelevant as they only contain "ER"
+         -- the last one is a null-terminator which we do not need either
+         raise CAMERA_ERROR with StreamConverter.ToString(Input => Return_Array(3..Return_Array'Last-1));
+      else
+         return Return_Array;
+      end if;
+   end;
 
 end Adaimageprocessor.Network.Protocol;
 

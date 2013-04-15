@@ -154,12 +154,10 @@ private
                           Error
                          );
       type phase1_operations is (
-                                  Request_Next_Image,
-                                  Error
+                                  Request_Next_Image
                                  );
       type phase2_operations is (
-                                  Request_Chunks,
-                                  Error
+                                  Request_Chunks
                                  );
 
       --------------------------------------------------------------------------
@@ -256,23 +254,21 @@ private
    function Process_Image_Size ( Size : in Natural ) return String;
 
    -----------------------------------------------------------------------------
-   -- Function: Camera_Error
+   -- Function: Receive_Data
    --
    -- Purpose:
-   --   Processes error messages received from the Camera
-   --
-   -- Effects:
-   --   FIXME
+   --   Provides a data receiver which does check for server-side error
+   --   messages, thus abstracs <Adaimageprocessor.Network.Socket.Receive_Data>
    --
    -- Parameters:
-   --   Erroressage - A Stream containing a packet with an error message.
+   --   None.
    --
    -- Returns:
-   --   A string with the error message
+   --   A Stream_Element_Array with the received data.
    --
    -- Exceptions:
-   --   None.
+   --   CAMERA_ERROR - raised if a server-side error was received
    -----------------------------------------------------------------------------
-   function Camera_Error (Errormessage: in STREAMLIB.Stream_Element_Array) return String;
+   function Receive_Data return STREAMLIB.Stream_Element_Array;
 
 end Adaimageprocessor.Network.Protocol;
