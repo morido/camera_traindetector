@@ -32,6 +32,7 @@ extern int error(const char *caller, const char *errormessage);
   PORTNUMBER - The port used for communication with the client
 */
 static const char CLIENTADDRESS[16]="127.0.0.1";
+//static const char CLIENTADDRESS[16]="192.168.56.1";
 static const int PORTNUMBER=12345;
 
 

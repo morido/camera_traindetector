@@ -81,8 +81,12 @@ void protocol_TransmitChunks ()
   /* check for preconditions */
   if ((CurrentImage == NULL) || (Chunkscount == -1))
     {
-      error(__FUNCTION__, "Current Image cannot be accessed.");
+      error(__FUNCTION__, "No access to current image.");
+      /* this happens e.g. if the udp-handshake was not complete (only IC instead of IN+IN+IC-triple)*/
     }
+
+  /* reply to request */
+  socket_SendToClient("IC", sizeof("IC"));
 
   int i;
   for (i=0; i<Chunkscount-1; i++)
