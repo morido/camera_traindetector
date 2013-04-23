@@ -19,9 +19,6 @@ package body Adaimageprocessor.Network.Protocol is
         & Process_Image_Size(ROI_Dimensions.Bottom_Right_X)
         & Process_Image_Size(ROI_Dimensions.Bottom_Right_Y);
 
-         -- FIXME we need to start here again in case the following send_string does not get through!
-         -- FIXME add the same looping-stuff as in raw_receiver below!!! continue here tomorrow
-
       Main_Block :
       declare
          subtype Valid_Roundtrip_Tries is Positive range Positive'First .. SOCKETCOMM.SettingsManager.Get_Roundtrip_Tries;
@@ -34,12 +31,9 @@ package body Adaimageprocessor.Network.Protocol is
             Receive_Block :
             declare
                Return_Array      : constant STREAMLIB.Stream_Element_Array := Receive_Data;
+               Process_Indicator : constant OperationIdentifiers.phase1_operations := OperationIdentifiers.ToEnumeration(operation => Return_Array(1..2));
                Return_String     : String (1 .. 4);
-               Process_Indicator : OperationIdentifiers.phase1_operations;
             begin
-               -- process result
-               Process_Indicator := OperationIdentifiers.ToEnumerationInit(operation => Return_Array(1..2));
-
                case Process_Indicator is
                when OperationIdentifiers.Request_Next_Image =>
                   -- wonderful, lets go
@@ -87,9 +81,8 @@ package body Adaimageprocessor.Network.Protocol is
                -- server has to reply with same contents
                declare
                   Received_Data : constant STREAMLIB.Stream_Element_Array := Receive_Data;
-                  Process_Indicator : OperationIdentifiers.phase2_operations;
+                  Process_Indicator : constant OperationIdentifiers.phase2_operations := OperationIdentifiers.ToEnumeration(operation => Received_Data(1..2));
                begin
-                  Process_Indicator := OperationIdentifiers.ToEnumerationBulkTransfer(operation => Received_Data(1..2));
                   case Process_Indicator is
                      when OperationIdentifiers.Request_Chunks =>
                         exit Initialize_Loop; -- fine, lets proceed
@@ -113,11 +106,11 @@ package body Adaimageprocessor.Network.Protocol is
       declare
          Return_Record : Chunk_Data;
       begin
--- FIXME is it possible to receive ER-messages here as well? if so we need to handle this
          Chunk_Receive_Loop :
          for Index_A in Number_Of_Chunks'First .. Chunks loop
             declare
-               Received_Data                  : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
+               --Received_Data                  : constant STREAMLIB.Stream_Element_Array := Receive_Data;
+               Received_Data                  : constant STREAMLIB.Stream_Element_Array := Adaimageprocessor.Network.Socket.Receive.Receive_Data;
                Current_Chunk_Number_As_String : String(1..4);
                Current_Chunk_Number           : Number_Of_Chunks;
             begin
@@ -148,8 +141,13 @@ package body Adaimageprocessor.Network.Protocol is
          end case;
       end ToString;
 
-
-      function ToEnumerationInit(operation: in STREAMLIB.Stream_Element_Array) return phase1_operations is
+      -- we do some overloading here, which is safe because of different return
+      -- types and careful assignment in the respective functions
+      --
+      -- conversion to an enumerated-type might slow down the program slightly
+      -- but has the advantage to keep all valid values at a central point and
+      -- let Ada warn you if not all cases are handled
+      function ToEnumeration(operation: in STREAMLIB.Stream_Element_Array) return phase1_operations is
          StringRepresentation : String(1..2);
       begin
          StringRepresentation := Streamconverter.ToString(Input => operation);
@@ -158,9 +156,9 @@ package body Adaimageprocessor.Network.Protocol is
          else
             raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
          end if;
-      end ToEnumerationInit;
+      end ToEnumeration;
 
-      function ToEnumerationBulkTransfer(operation: in STREAMLIB.Stream_Element_Array) return phase2_operations is
+      function ToEnumeration(operation: in STREAMLIB.Stream_Element_Array) return phase2_operations is
          StringRepresentation : String(1..2);
       begin
          StringRepresentation := Streamconverter.ToString(Input => operation);
@@ -169,7 +167,18 @@ package body Adaimageprocessor.Network.Protocol is
          else
             raise COMMUNICATION_ERROR with "Server did not answer image request correctly";
          end if;
-      end ToEnumerationBulkTransfer;
+      end ToEnumeration;
+
+      function ToEnumeration(operation: in STREAMLIB.Stream_Element_Array) return error_operations is
+         StringRepresentation : String(1..2);
+      begin
+         StringRepresentation := Streamconverter.ToString(Input => operation);
+         if StringRepresentation = OPcode_Error then
+            return OperationIdentifiers.Error;
+         else
+            return OperationIdentifiers.No_Error;
+         end if;
+      end ToEnumeration;
 
    end OperationIdentifiers;
 
@@ -179,6 +188,7 @@ package body Adaimageprocessor.Network.Protocol is
       package STRINGFIXEDLIB renames Ada.Strings.Fixed;
       package STRINGLIB renames Ada.Strings;
    begin
+      -- first two characters contain sign (+/-) and space, we omit them here
       STRINGFIXEDLIB.Move(Source => Natural'Image(Size)(2 .. Natural'Image(Size)'Last),
 			  Target => Return_String,
 			  Drop => STRINGLIB.Error,
@@ -188,21 +198,23 @@ package body Adaimageprocessor.Network.Protocol is
    end Process_Image_Size;
 
    function Receive_Data return STREAMLIB.Stream_Element_Array is
-      Return_Array : constant STREAMLIB.Stream_Element_Array := SOCKETCOMM.Receive_Data;
-      Compare_String : String(1..2);
+      package SOCKETCOMMRCV renames Adaimageprocessor.Network.Socket.Receive;
+      Return_Array : constant STREAMLIB.Stream_Element_Array := SOCKETCOMMRCV.Receive_Data;
+      Process_Indicator : constant OperationIdentifiers.error_operations := OperationIdentifiers.ToEnumeration(operation => Return_Array(1..2));
    begin
     -- FIXME; is there a chance that we can somehow hide SOCKETCOMM.Receive_Data away from outside this function?!
 
-      -- FIXME rewrite Compare_String using OperationIdentifiers
-      Compare_String := Streamconverter.ToString(Input => Return_Array(1..2));
-      if Compare_String = OperationIdentifiers.ToString(operation => OperationIdentifiers.Error) then
-         -- first two characters are irrelevant as they only contain "ER"
-         -- the last one is a null-terminator which we do not need either
-         raise CAMERA_ERROR with StreamConverter.ToString(Input => Return_Array(3..Return_Array'Last-1));
-      else
-         return Return_Array;
-      end if;
+      case Process_Indicator is
+         when OperationIdentifiers.No_Error =>
+            -- no "ER", we return the entire array
+            return Return_Array;
+         when OperationIdentifiers.Error =>
+            -- first two characters contain "ER" and the last one is a nullterminator. Remove them.
+            raise CAMERA_ERROR with StreamConverter.ToString(Input => Return_Array(3..Return_Array'Last-1));
+      end case;
+
    end;
+
 
 end Adaimageprocessor.Network.Protocol;
 

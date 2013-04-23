@@ -15,9 +15,12 @@
 -- Ada.Strings.Fixed - Functions for Strings with fixed length
 -- Adaimageprocessor.Network.Socket - Handles the raw UDP
 -- socket communication
+-- Adaimageprocessor.Network.Socket.Receive - Handles the receive part of the
+-- communication
 --------------------------------------------------------------------------------
 private with Ada.Strings.Fixed;
 with Adaimageprocessor.Network.Socket;
+private with Adaimageprocessor.Network.Socket.Receive;
 
 package Adaimageprocessor.Network.Protocol is
    package SOCKETCOMM renames Adaimageprocessor.Network.Socket;
@@ -119,6 +122,7 @@ private
    -- Section: private
    -----------------------------------------------------------------------------
 
+
    -----------------------------------------------------------------------------
    -- Variables : Adaimageprocessor.Network.Protocol
    --
@@ -147,6 +151,8 @@ private
       -- phase2_operations - enumeration type for all possible operations which
       -- can be performed during the second phase (Bulk-Transfer) of the
       -- transfer
+      -- error_operations - enuermation type for all possible operations which
+      -- signalize any malfunction
       --------------------------------------------------------------------------
       type operations is (
                           Request_Chunks,
@@ -159,6 +165,10 @@ private
       type phase2_operations is (
                                   Request_Chunks
                                  );
+      type error_operations is  (
+                                 Error,
+                                 No_Error
+                                );
 
       --------------------------------------------------------------------------
       -- Function: ToString
@@ -177,11 +187,11 @@ private
 
 
       --------------------------------------------------------------------------
-      -- Function: ToEnumerationInit
+      -- Function: ToEnumeration
       --
       -- Purpose:
       -- Convert a two-element array received from the socket into its
-      -- enumerated representation of <request_operations> suitable for a case
+      -- enumerated representation of <phase1_operations> suitable for a case
       -- statement
       --
       -- Parameters:
@@ -190,15 +200,15 @@ private
       -- Returns:
       -- A <phase1_operations>-equivalent
       --------------------------------------------------------------------------
-      function ToEnumerationInit (operation: in STREAMLIB.Stream_Element_Array) return phase1_operations;
+      function ToEnumeration (operation: in STREAMLIB.Stream_Element_Array) return phase1_operations;
 
 
       --------------------------------------------------------------------------
-      -- Function: ToEnumerationInit
+      -- Function: ToEnumeration
       --
       -- Purpose:
       -- Convert a two-element array received from the socket into its
-      -- enumerated representation of <request_operations> suitable for a case
+      -- enumerated representation of <phase2_operations> suitable for a case
       -- statement
       --
       -- Parameters:
@@ -207,9 +217,27 @@ private
       -- Returns:
       -- A <phase2_operations>-equivalent
       --------------------------------------------------------------------------
-      function ToEnumerationBulkTransfer (operation: in STREAMLIB.Stream_Element_Array) return phase2_operations;
+      function ToEnumeration (operation: in STREAMLIB.Stream_Element_Array) return phase2_operations;
+
+      --------------------------------------------------------------------------
+      -- Function: ToEnumeration
+      --
+      -- Purpose:
+      -- Convert a two-element array received from the socket into its
+      -- enumerated representation of <error_operations> suitable for a case
+      -- statement
+      --
+      -- Parameters:
+      -- operation - a two-character long array
+      --
+      -- Returns:
+      -- An <error_operations>-equivalent
+      --------------------------------------------------------------------------
+      function ToEnumeration(operation: in STREAMLIB.Stream_Element_Array) return error_operations;
+
 
    private
+
       --------------------------------------------------------------------------
       -- section: private
       --------------------------------------------------------------------------

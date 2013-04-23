@@ -82,8 +82,6 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
    begin
       -- shutdown the socket
       SOCKETCOMM.Close_Socket;
-
-
       raise KILL with "Shutdown. Goodbye.";
    exception
       when Error: KILL =>

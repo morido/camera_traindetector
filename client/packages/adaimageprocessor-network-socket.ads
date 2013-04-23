@@ -9,7 +9,7 @@
 --   * <Adaclient> transmits data using this package in the following way:
 --   1. - call <Open_Socket> to set up a new socket for communication
 --   2. - Send an initial request through <Send_Data>
---   3. - Receive the answer to that request through <Receive_Data>
+--   3. - Receive the answer to that request through <Adaimageprocessor.Network.Socket.Receive.Receive_Data>
 --   4. - repeat steps 2. and 3. until data transfer is complete.
 --   5. - Close the socket used for 2. and 3. with <Close_Socket>
 --
@@ -115,26 +115,6 @@ package Adaimageprocessor.Network.Socket is
    -----------------------------------------------------------------------------
    procedure Send_String (String_To_Send : in String);
 
-   -----------------------------------------------------------------------------
-   -- Function: Receive_Data
-   -- Purpose:
-   --   Wrapper for
-   --   <Raw_Receiver>
-   --
-   -- Effects:
-   --   attempts <SettingsManger.Get_Tries> times to receive data
-   --
-   -- Parameters:
-   --   None.
-   --
-   -- Returns:
-   --   A stream containing the data received.
-   --
-   -- Exceptions:
-   --  CONNECTION_ERROR - raised if no data was received after
-   --  <SettingsManager.Get_Tries>
-   -----------------------------------------------------------------------------
-   function Receive_Data return STREAMLIB.Stream_Element_Array;
 
    -----------------------------------------------------------------------------
    -- Package: SettingsManager
@@ -228,9 +208,9 @@ package Adaimageprocessor.Network.Socket is
       -- ROUNDTRIP_TRIES - How often to perform a complete roundtrip (i.e. send
       -- request wait for answer)
       --------------------------------------------------------------------------
-      SOCKET_TIMEOUT_MAX : constant Duration := 0.5;
+      SOCKET_TIMEOUT_MAX : constant Duration := 0.1;
       --SOCKET_TIMEOUT_MIN : constant Duration := 0.01; --FIXME good value?
-      SOCKET_TIMEOUT_MIN : constant Duration := 5.0;
+      SOCKET_TIMEOUT_MIN : constant Duration := 0.05;
       CONNECTION_TRIES_MAX : constant Positive := 5;
       CONNECTION_TRIES_MIN : constant Positive := 2;
       ROUNDTRIP_TRIES : constant Positive := 2;
@@ -285,28 +265,7 @@ private
    procedure Send_Data(Data_To_Send : in STREAMLIB.Stream_Element_Array);
 
    -----------------------------------------------------------------------------
-   -- Function: Raw_Receiver
-   -- Purpose:
-   --   Handle the actual data reception; counterpart to <Send_Data>
-   --
-   -- Effects:
-   --   Not called directly but rather by
-   --   <Adaimageprocessor.Network.Socket.Receive_Data>
-   --
-   -- Parameters:
-   --   None.
-   --
-   -- Returns:
-   --  Received_Data_Array - A Stream containing the received data or an error
-   --  if reception failed
-   --
-   -- Exceptions:
-   --   None.
-   -----------------------------------------------------------------------------
-   function Raw_Receiver return STREAMLIB.Stream_Element_Array;
-
-   -----------------------------------------------------------------------------
-   -- Function: Raw_Receiver
+   -- Function: CheckSocketSetUp
    -- Purpose:
    --   Check if the connection is set up properly. I.e. if <SocketIsSetUp> is
    --   true.
