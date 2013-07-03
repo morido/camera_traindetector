@@ -15,6 +15,7 @@
 pragma Profile (Ravenscar);
 pragma Ada_05;
 with Adaimageprocessor.Network.Protocol.Imagetransfer;
+with Adaimageprocessor.Image.Analyze;
 
 -------------------------------------------------------------------------------
 -- Procedure: Adaclient

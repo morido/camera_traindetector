@@ -6,6 +6,7 @@
 
 --- only testing FIXME; for file write
 with Ada.Streams.Stream_IO;
+with Adaimageprocessor.Image;
 -- END test
 
 package Adaimageprocessor.Network.Protocol.Imagetransfer is
@@ -17,7 +18,7 @@ package Adaimageprocessor.Network.Protocol.Imagetransfer is
    subtype Image is STREAMLIB.Stream_Element_Array (1 .. STREAMLIB.Stream_Element_Offset(Number_Of_Chunks'Last * Image_Chunk_Data'Length));
 
    -----------------------------------------------------------------------------
-   -- Group: Client_Contoller
+   -- Group: Client_Controller
    -- Purpose:
    --  Task to run the actual client
    -----------------------------------------------------------------------------

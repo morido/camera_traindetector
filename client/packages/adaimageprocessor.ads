@@ -25,6 +25,18 @@ package Adaimageprocessor is
 
 
    -----------------------------------------------------------------------------
+   -- Types:
+   --
+   --  Width_Of_Image - an Integer subtype covering all natural numbers up to
+   --  960, which is the maximum width of an image captured by the camera
+   --  Height_Of_Image - an Integer subtype covering all natural numbers up to
+   --  1280, which is the maximum height of an image captured by the camera
+   -----------------------------------------------------------------------------
+   subtype Width_Of_Image is Natural range 0 .. 571;
+   subtype Height_Of_Image is Natural range 0 .. 723;
+
+
+   -----------------------------------------------------------------------------
    -- Variables:
    --  ShutdownFlag - A Flag telling <Adaclient> cease operation.
    --  END_TASK - An exception to signalize the need to shut down
@@ -110,12 +122,6 @@ private
       function Shutdown_Requested return Boolean;
 
       --------------------------------------------------------------------------
-      -- Section: private
-      --------------------------------------------------------------------------
-   private
-
-
-      --------------------------------------------------------------------------
       -- Procedure: InterruptHandler
       --
       -- Purpose:
@@ -134,6 +140,11 @@ private
       --   None.
       --------------------------------------------------------------------------
       procedure InterruptHandler;
+
+      --------------------------------------------------------------------------
+      -- Section: private
+      --------------------------------------------------------------------------
+   private
 
       --------------------------------------------------------------------------
       -- Pragmas: InterruptContoller

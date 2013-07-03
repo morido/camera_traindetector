@@ -22,7 +22,8 @@ package Adaimageprocessor.Network is
    --
    -- Purpose:
    --  Provide functions to convert to and from an
-   --  Ada.Stream.Stream_Element_Array
+   --  Ada.Stream.Stream_Element_Array; see also:
+   --  <Adaimageprocessor.Image.Streamconverter>
    -----------------------------------------------------------------------------
    package Streamconverter is
       --------------------------------------------------------------------------

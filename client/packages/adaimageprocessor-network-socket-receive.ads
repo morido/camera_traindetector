@@ -16,7 +16,9 @@ package Adaimageprocessor.Network.Socket.Receive is
    --   <Raw_Receiver>
    --
    -- Effects:
-   --   attempts <SettingsManger.Get_Tries> times to receive data
+   --   attempts
+   --   <Adaimageprocessor.Network.Socket.SettingsManager.Get_Connection_Tries>
+   --   times to receive data
    --
    -- Parameters:
    --   None.
@@ -26,7 +28,7 @@ package Adaimageprocessor.Network.Socket.Receive is
    --
    -- Exceptions:
    --  CONNECTION_ERROR - raised if no data was received after
-   --  <SettingsManager.Get_Tries>
+   --  <Adaimageprocessor.Network.Socket.SettingsManager.Get_Connection_Tries>
    -----------------------------------------------------------------------------
    function Receive_Data return STREAMLIB.Stream_Element_Array;
 
@@ -42,7 +44,7 @@ private
    --
    -- Effects:
    --   Not called directly but rather by
-   --   <Adaimageprocessor.Network.Socket.Receive_Data>
+   --   <Receive_Data>
    --
    -- Parameters:
    --   None.

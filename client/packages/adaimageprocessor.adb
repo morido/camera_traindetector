@@ -2,6 +2,7 @@ private with Ada.Text_IO;
 private with Ada.Strings.Unbounded;
 private with Ada.Command_Line;
 private with GNAT.Time_Stamp;
+private with Adaimageprocessor.Image;
 
 
 package body Adaimageprocessor is
@@ -19,6 +20,7 @@ package body Adaimageprocessor is
       Completemessage := SU.To_Unbounded_String(TIMESTAMP.Current_Time & " " & EXCEPT.Exception_Name(Errormessage) & ": " & EXCEPT.Exception_Message(Errormessage));
       IO.Put_Line (File => IO.Standard_Error, Item => SU.To_String(Completemessage));
       CL.Set_Exit_Status (CL.Failure);
+      InterruptController.InterruptHandler; --manually simulate CTRL+C
    end Error;
 
    procedure AllowShutdown is
@@ -40,6 +42,7 @@ package body Adaimageprocessor is
       procedure InterruptHandler is
       begin
 	 ShutdownFlag := True;
+         Adaimageprocessor.Image.Imagedata.Shutdown;
       end InterruptHandler;
    end InterruptController;
 

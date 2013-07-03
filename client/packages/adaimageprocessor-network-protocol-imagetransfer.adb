@@ -33,8 +33,8 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
       -- write all our UDP-packets to a file
       Dimensions.Top_Left_X := 0;
       Dimensions.Top_Left_Y := 0;
-      Dimensions.Bottom_Right_X := 960;
-      Dimensions.Bottom_Right_Y := 1280;
+      Dimensions.Bottom_Right_X := Width_Of_Image'Last;
+      Dimensions.Bottom_Right_Y := Height_Of_Image'Last;
 
       -- phase 1: set up the transfer
       Chunkscount := Request_Next_Image(Dimensions);
@@ -61,6 +61,11 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
       end;
    end Write_Image_To_File;
 
+   --function Get_Image_From_remote return image is
+   --begin
+   --end Get_image_from_remote;
+
+
    -- private
 
    procedure Setup is
@@ -82,7 +87,7 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
    begin
       -- shutdown the socket
       SOCKETCOMM.Close_Socket;
-      raise KILL with "Shutdown. Goodbye.";
+      raise KILL with "Imagetransfer: Shutdown. Goodbye.";
    exception
       when Error: KILL =>
 	 Adaimageprocessor.Error(Error);

@@ -33,10 +33,6 @@ package Adaimageprocessor.Network.Protocol is
    -- Types: Adaimageprocessor.Network.Protocol
    --  Number_Of_Chunks - an Integer subtype covering all natural numbers up
    --  to 6728, which is the maximum number to be expected for an image
-   --  Width_Of_Image - an Integer subtype covering all natural numbers up to
-   --  960, which is the maximum width of an image captured by the camera
-   --  Height_Of_Image - an Integer subtype covering all natural numbers up to
-   --  1280, which is the maximum height of an image captured by the camera
    --  Image_Dimensions - A record specifying the valid X,Y dimensions of a
    --  subimage
    --  Image_Chunk_Data - same as <Adaimageprocessor.Network.Socket.Transmittable_Data_Array>
@@ -48,8 +44,7 @@ package Adaimageprocessor.Network.Protocol is
    --subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
 
 
-   subtype Width_Of_Image is Natural range 0 .. 960;
-   subtype Height_Of_Image is Natural range 0 .. 1280;
+
 
    subtype Number_Of_Chunks is SOCKETCOMM.Number_Of_Chunks;
 
