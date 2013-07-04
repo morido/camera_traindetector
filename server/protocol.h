@@ -27,6 +27,7 @@ extern int error();
 /*
 defines:
 CHUNKIDWIDTH - width of the the chunkid in bytes
+NULLTERMINATOR - width of the null-terminator byte
 */
 #define CHUNKIDWIDTH 4
 /* do not set higher than 9, protocol_GetNextChunk() would break otherwise; client will break with any value =! 4 */
@@ -50,36 +51,47 @@ static int Chunkscount = -1;
 static int LastChunkSize = 0;
 
 /*
-Function: protocol_GetRequest
-Purpose: Process requests by the client
-Parameters: None.
-Effects: Will block until request is made.
-Returns: The request as a char-array.
+   Function: protocol_GetRequest
+
+   Purpose:
+   Process requests by the client
+
+   Parameters:
+   None.
+
+   Effects:
+   Will block until request is made.
+
+   Returns:
+   The request as a char-array.
 */
 char* protocol_GetRequest();
 
 /*
-Function: protocol_ReturnMaxImageSize
-Purpose: Return the maximum width and height of the image the camera can capture
-Parameters: None.
-Returns: Nothing.
-*/
-void protocol_ReturnMaxImageSize();
+   Function: protocol_PrepareNextImage
 
-/*
-Function: protocol_PrepareNextImage
-Purpose: Prepare the next image for transmission (i.e. get it and crop it)
-Parameters:
-rawrequest - A raw request (string) asking for the next image.
-Returns: nothing.
-Effects: Sets <CurrentImage> and <Packetcount> for the upcoming transfer
+   Purpose:
+   Prepare the next image for transmission (i.e. get it and crop it)
+
+   Effects:
+   Sets <CurrentImage> and <Packetcount> for the upcoming transfer
+
+   Parameters:
+   rawrequest - A raw request (string) asking for the next image.
+
+   Returns:
+   nothing.
 */
 void protocol_PrepareNextImage (char* rawrequest);
 
 /*
-Function: protocol_TransmitChunks
-Purpose: Transmit the image-chunks to the client
-Returns: nothing. (since this is an UDP-transfer)
+   Function: protocol_TransmitChunks
+
+   Purpose:
+   Transmit the image-chunks to the client.
+
+   Returns:
+   nothing. (since this is an UDP-transfer)
 */
 void protocol_TransmitChunks ();
 
@@ -88,30 +100,45 @@ Section: Static
 */
 
 /*
-Function: protocol_DimensionConversion
-Purpose: A helper function to convert the string containing the subimage dimensions into proper integers.
-Parameters:
-rawrequest - The raw array returned by the client containing the dimensions
-offset - First character to read
-Returns: an integer with the requested pixel value
+   Function: protocol_DimensionConversion
+
+   Purpose:
+   A helper function to convert the string containing the subimage dimensions into proper integers.
+
+   Parameters:
+   rawrequest - The raw array returned by the client containing the dimensions
+   offset - First character to read
+
+   Returns:
+   an integer with the requested pixel value
 */
 static int protocol_DimensionConversion (char* rawrequest, int offset);
 
 /*
-Function: protocol_GetNextChunk
-Purpose: Extract the next chunk of imagedata from the image
-Parameters:
-chunk - the id of the chunk to be processed
-Returns: The extracted chunk
+   Function: protocol_GetNextChunk
+
+   Purpose:
+   Extract the next chunk of imagedata from the image
+
+   Parameters:
+   chunk - the id of the chunk to be processed
+
+   Returns:
+   The extracted chunk
 */
 static char* protocol_GetNextChunk (int chunkid);
 
 
 /*
-Function: protocol_ChunkidToString
-Purpose: Adds appropriate zero-padding to chunk-ids
-Parameters:
-chunkid - the id to be processed
-Returns: The chunkid as a string with zero-padding
+   Function: protocol_ChunkidToString
+
+   Purpose:
+   Adds appropriate zero-padding to chunk-ids
+
+   Parameters:
+   chunkid - the id to be processed
+
+   Returns:
+   The chunkid as a string with zero-padding
 */
 static char* protocol_ChunkidToString (int chunkid);

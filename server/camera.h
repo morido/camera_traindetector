@@ -21,22 +21,29 @@ extern int error(const char *caller, const char *errormessage);
 
 /*
 defines:
-SIZERAWIMAGE - corresponds to the size of a BMP in bytes FIXME what is the actual maximum needed? Determinable via capture.h?
+IMAGEWIDTH - the width of the image in pixels
 */
-#define SIZERAWIMAGE 3686455
+#define IMAGEWIDTH 572
 
 
 /*
-Function: camera_ReadImage
-Purpose: Read and Crop an image from the camera
+   Function:
+   camera_ReadImage
 
-Parameters:
-ImageDimensions - see <ImageDimensions>
-Returns:
-An <ImageData>-struct.
+   Purpose:
+   Read and Crop an image from the camera
 
-Exceptions:
-Returns an error if any of the x/y-coordinate values are malformed
+
+   Parameters:
+   ImageDimensions - see <ImageDimensions>
+
+
+   Returns:
+   An <ImageData>-struct.
+
+
+   Exceptions:
+   Returns an error if any of the x/y-coordinate values are malformed
 */
 struct ImageData camera_ReadImage(struct ImageDimensions Dimensions);
 
@@ -45,9 +52,18 @@ section: Static
 */
 
 /*
-Function: camera_ReadImageRaw
-Purpose: Read an image from the camera
-Parameters: None.
-Returns: A pointer to the obtained image data
+   Function:
+   camera_ReadImageRaw
+
+   Purpose:
+   Read an image from the camera
+
+   Parameters:
+   ImageDimensions - see <ImageDimensions>
+   resulting_imagesize - the calculated size of the resulting image
+
+
+   Returns:
+   A pointer to the obtained image data
 */
-static unsigned char* camera_ReadImageRaw();
+static unsigned char* camera_ReadImageRaw(struct ImageDimensions Dimensions, int resulting_imagesize);

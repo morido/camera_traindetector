@@ -63,35 +63,69 @@ socklen_t clientaddresslength = sizeof(clientaddress);
 
 /*
 Function: socket_open
-Purpose: Creates a socket for the upcoming communication
-Parameters: None.
-Returns: Nothing.
+   Purpose:
+   Creates a socket for the upcoming communication
+
+   Parameters:
+   None.
+
+   Returns:
+   Nothing.
 */
 void socket_open();
 
 /*
 Function: socket_close
-Purpose: Close the socket opened previousely by <socket_open>
-Parameters: None.
-Returns: Nothing.
+   Purpose:
+   Close the socket opened previousely by <socket_open>
+
+   Parameters:
+   None.
+
+   Returns:
+   Nothing.
 */
 void socket_close();
 
 /*
 Function: socket_receivefromclient
-Purpose: Receive data from the client (the controlling Ada-Program)
-Parameters: None.
-Returns: A pointer to a char-array containing the received data.
+   Purpose:
+   Receive data from the client (the controlling Ada-Program)
+
+   Parameters:
+   None.
+
+   Returns:
+   A pointer to a char-array containing the received data.
 */
 char* socket_ReceiveFromClient();
 
 /*
 Function: socket_sendtoclient
-Purpose: Send data to the client (the controlling Ada-Program)
-Parameters: A pointer to the char-array to be transmitted.
-Returns: Nothing.
+   Purpose:
+   Send data to the client (the controlling Ada-Program)
+
+   Parameters:
+   A pointer to the char-array to be transmitted.
+
+   Returns:
+   Nothing.
 */
 void socket_SendToClient(const char *senddata, const int length);
+
+/*
+Function: socket_sendtoclient
+   Purpose:
+   Try to send errordata to the client (the controlling Ada-Program). If the
+   socket is not properly set up this will silently fail.
+
+   Parameters:
+   A pointer to the char-array to be transmitted.
+
+   Returns:
+   Nothing.
+*/
+void socket_SendErrorToClient(const char *senddata, const int length);
 
 /*
 Section: static
@@ -99,8 +133,13 @@ Section: static
 
 /*
 Function: socket_Precheck
-Purpose: Check if the socket is set up properly
-Parameters: none.
-Returns: nothing.
+   Purpose:
+   Check if the socket is set up properly
+
+   Parameters:
+   none.
+
+   Returns:
+   nothing.
 */
 static void socket_Precheck();

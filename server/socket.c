@@ -66,6 +66,16 @@ void socket_SendToClient(const char *senddata, const int length)
     }
 }
 
+
+void socket_SendErrorToClient(const char *senddata, const int length)
+{
+  /* try to send data regardless of the state of the socket */
+  if (sockethandler > 0)
+    {
+      sendto(sockethandler, senddata, length, 0, (struct sockaddr *) &clientaddress, clientaddresslength);
+    }
+}
+
 static void socket_Precheck()
 {
   if (sockethandler < 0)

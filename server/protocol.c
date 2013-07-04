@@ -12,15 +12,6 @@ char* protocol_GetRequest()
   return result;
 }
 
-void protocol_ReturnMaxImageSize()
-{
-  /* FIXME:
-     Interface to camera.h required to get max-dimensions
-  */
-	/* FIXME second parameter missing */
-  socket_SendToClient("IS12800960");
-}
-
 void protocol_PrepareNextImage (char* rawrequest)
 {
   /* read image dimensions */
@@ -91,12 +82,15 @@ void protocol_TransmitChunks ()
   int i;
   for (i=0; i<Chunkscount-1; i++)
     {
-	// FIXME!!!!
       socket_SendToClient(protocol_GetNextChunk(i), MAXPACKETSIZE);
+      // FIXME add real congestion-control here
+      nanosleep((struct timespec[]){{0, 0}}, NULL); //sleep for 0.000000005s
     }
   //very last chunk
   socket_SendToClient(protocol_GetNextChunk(i), LastChunkSize+CHUNKIDWIDTH);
 
+  /* free the memory for the image */
+  free(CurrentImage);
   /* reset the pointer to the CurrentImage, so protocol_PrepareNextImage()
      has to be called again for the next transfer */
   CurrentImage = NULL;
@@ -107,7 +101,7 @@ void protocol_TransmitChunks ()
 static int protocol_DimensionConversion (char* rawrequest, int offset)
 {
   char *conversionendpointer = NULL;
-  char tempsize[4];
+  char tempsize[5]; /* snprintf writes nullterminators so we need 4+1 in size here! */
   snprintf(tempsize, sizeof(tempsize), "%c%c%c%c", rawrequest[offset], rawrequest[offset+1], rawrequest[offset+2], rawrequest[offset+3]);
 
   long return_value;
@@ -115,7 +109,9 @@ static int protocol_DimensionConversion (char* rawrequest, int offset)
   return_value = strtol(tempsize, &conversionendpointer, 10);
 
   /* check for possible errors; there are more (see man 3 strtol) but others
-     cannot occur here */
+     cannot occur here.
+     Note: This is not MISRA-compliant as the use of errno is discuraged there
+   */
   if ((errno != 0 && return_value == 0) || (conversionendpointer == tempsize))
     {
       error(__FUNCTION__ , "Conversion failed.");
