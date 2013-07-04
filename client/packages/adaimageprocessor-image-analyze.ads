@@ -2,10 +2,11 @@
 -- Headers: Adaimageprocessor.Image.Analyze
 -- Adaimageprocessor.Image.Trackdata - information on the position of the track
 -- on the images
+-- Ada.Synchronous_Task_Control - provides semaphores for Ravenscar-compliant
+-- synchronization of the different tasks
 --------------------------------------------------------------------------------
 with Adaimageprocessor.Image.Trackdata;
 with Ada.Synchronous_Task_Control;
-
 
 package Adaimageprocessor.Image.Analyze is
 
@@ -19,38 +20,85 @@ package Adaimageprocessor.Image.Analyze is
    -----------------------------------------------------------------------------
    subtype railnumber is Natural range 1..2;
 
-
-
--- FIXME documentation missing
+   -----------------------------------------------------------------------------
+   -- group: Resulting_Position
+   --
+   -- Purpose:
+   -- A protected task providing mutually exclusive access to the position of
+   -- the train as calculated by the workers of <Analyze_Rail>
+   -----------------------------------------------------------------------------
    protected Resulting_Position is
+      --------------------------------------------------------------------------
+      -- Procedure: Write
+      --
+      -- Purpose:
+      -- Signalize the currently computed position. Called by a worker of
+      -- <Analyze_Rail>. Internal logic decides whether the given position is
+      -- taken as relevant or simply neglected.
+      --
+      -- Effects:
+      -- <Read>. This procedure has to be called n-times (with n being the
+      -- number of rails available) before a read can take place.
+      --
+      -- Parameters:
+      -- position - The position as the Y-value of the pixel where the
+      -- train-head was found
+      --
+      -- Returns:
+      -- Nothing.
+      --------------------------------------------------------------------------
       procedure Write (position: in Integer);
+
+      --------------------------------------------------------------------------
+      -- Procedure: Read
+      --
+      -- Purpose:
+      -- Read out the computed position of the train-head.
+      --
+      -- Effects:
+      -- This is a blocking call and will not return until <Write> was called
+      -- often enough (see above).
+      --
+      -- Parameters:
+      -- position: the position as the Y-value of the pixel at which the train
+      -- was detected.
+      --
+      -- Returns:
+      -- Nothing.
+      --------------------------------------------------------------------------
       entry Read(position: out Integer);
+
    private
-      position_of_train_in_pixels : Integer := -1;
+      position_of_train_in_pixels : Integer range Height_Of_Image'First-1..Height_Of_Image'Last := -1;
       position_available : Boolean := False;
       rail_counter : Natural range railnumber'First-1..railnumber'Last := railnumber'First-1;
    end Resulting_Position;
 
-   task Acquire_Imagedata;
-
-   task type Analyze_Rail (id : railnumber; rail_to_process : access constant TRACK.Slices);
-
    -----------------------------------------------------------------------------
-   -- Function: detect_train
+   -- group: Acquire_Imagedata
    --
    -- Purpose:
-   -- Main train detection function
+   -- Copy the imagedata from <Adaimageprocessor.Network.Protocol.Imagetransfer>
+   -- to a local array in <Adaimageprocessor.Image.Analyze.Local_Imagedata>
+   -----------------------------------------------------------------------------
+   task Acquire_Imagedata is
+      Pragma Storage_Size ( 8192*1024 );
+   end Acquire_Imagedata;
+
+
+   -----------------------------------------------------------------------------
+   -- group: Analyze_Rail
+   --
+   -- Purpose:
+   -- Abstract worker task which can analyze a single rail.
    --
    -- Parameters:
-   -- input - The image of interest
-   --
-   -- Returns:
-   -- an integer indicating the position of the train on the image
-   --
-   -- Exceptions:
-   -- None.
+   -- id - the id of the rail (sequential number)
+   -- rail_to_process - a pointer to the track data
    -----------------------------------------------------------------------------
-   function detect_train (input: in storage_for_image) return Integer;
+   task type Analyze_Rail (id : railnumber; rail_to_process : access constant TRACK.Slices) is
+      Pragma Storage_Size ( 8192*1024 );
+   end Analyze_Rail;
 
 private
 
@@ -123,17 +171,6 @@ private
    -- aquisition task FIXME NAME and the image processing tasks FIXME Name
    -----------------------------------------------------------------------------
    Analyze_Semaphore : array (railnumber'Range) of STASKC.Suspension_Object;
-
-   -- FIXME documentation
-   package Local_Imagedata is
-      procedure Set_Imagedata (data : in storage_for_image);
-      function Get_Imagedata return storage_for_image;
-   private
-      imagedata_to_analyze : storage_for_image;
-   end Local_Imagedata;
-
-
-
 
    -----------------------------------------------------------------------------
    -- Function: detect_train_one_rail
@@ -249,5 +286,46 @@ private
    -- KILL - an exception always raised by this procedure.
    -----------------------------------------------------------------------------
    procedure Cleanup_Analyze_Rail(id : in railnumber);
+
+      -----------------------------------------------------------------------------
+   -- Package: Local_Imagedata
+   --
+   -- Purpose:
+   -- A local storage for the current imagedata to be processed.
+   -----------------------------------------------------------------------------
+   package Local_Imagedata is
+      --------------------------------------------------------------------------
+      -- Procedure: Set_Imagedata
+      --
+      -- Purpose:
+      -- Write new imagedata into the storage. Called by
+      -- <Adaimageprocessor.Image.Analyze.Aquire_Imagedata>.
+      --
+      -- Parameters:
+      -- data - the image to be stored.
+      --
+      -- Returns:
+      -- Nothing.
+      --------------------------------------------------------------------------
+      procedure Set_Imagedata (data : in storage_for_image);
+
+      --------------------------------------------------------------------------
+      -- Function: Get_Imagedata
+      --
+      -- Purpose:
+      -- Provide the current imagedata. Called by the workers of
+      -- <Adaimageprocessor.Image.Analyze.Analyze_Rail>
+      --
+      -- Parameters:
+      -- None.
+      --
+      -- Returns:
+      -- the current image.
+      --------------------------------------------------------------------------
+      function Get_Imagedata return storage_for_image;
+
+   private
+      imagedata_to_analyze : storage_for_image;
+   end Local_Imagedata;
 
 end Adaimageprocessor.Image.Analyze;

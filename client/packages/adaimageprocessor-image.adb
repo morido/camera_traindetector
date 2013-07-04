@@ -18,6 +18,8 @@ package body Adaimageprocessor.Image is
          -- this does not not do anything but to unblock the read operation so
          -- all task depending on this can kill themselves
          Ready_For_Read := true;
+         -- return a black image on next read
+         Current_Image := (others => (others => STREAMLIB.Stream_Element(0)));
       end Shutdown;
    end Imagedata;
 

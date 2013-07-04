@@ -20,7 +20,10 @@ package body Adaimageprocessor is
       Completemessage := SU.To_Unbounded_String(TIMESTAMP.Current_Time & " " & EXCEPT.Exception_Name(Errormessage) & ": " & EXCEPT.Exception_Message(Errormessage));
       IO.Put_Line (File => IO.Standard_Error, Item => SU.To_String(Completemessage));
       CL.Set_Exit_Status (CL.Failure);
-      InterruptController.InterruptHandler; --manually simulate CTRL+C
+      --manually simulate CTRL+C; this is necessary because we Ravenscar forbids
+      -- to use abort-statements and hence requires "normal" termination of all
+      -- tasks
+      InterruptController.InterruptHandler;
    end Error;
 
    procedure AllowShutdown is
@@ -41,7 +44,8 @@ package body Adaimageprocessor is
       -- private
       procedure InterruptHandler is
       begin
-	 ShutdownFlag := True;
+         ShutdownFlag := True;
+         -- allow the image-dependant tasks to terminate as well
          Adaimageprocessor.Image.Imagedata.Shutdown;
       end InterruptHandler;
    end InterruptController;

@@ -55,7 +55,7 @@ package Adaimageprocessor.Network.Socket is
    -----------------------------------------------------------------------------
    subtype Transmittable_Data_Array_Size is STREAMLIB.Stream_Element_Offset range 1 .. STREAMLIB.Stream_Element_Offset(MAX_PACKET_SIZE);
    subtype Transmittable_Data_Array is STREAMLIB.Stream_Element_Array(Transmittable_Data_Array_Size'Range);
-   subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
+   subtype Number_Of_Chunks is Positive range 1 .. 763; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
 
    -----------------------------------------------------------------------------
    -- Variables: Adaimageprcessor.Socket

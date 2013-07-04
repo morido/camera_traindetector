@@ -5,7 +5,7 @@ package body Adaimageprocessor.Image.Analyze is
       procedure Write (position : in Integer) is
       begin
          -- we are returning our last (=furthest away from the lower edge of the image) guess on the position of the train
-         if position_of_train_in_pixels = -1 or position < position_of_train_in_pixels then
+         if position > -1 and (position_of_train_in_pixels = -1 or position < position_of_train_in_pixels) then
             position_of_train_in_pixels := position;
          end if;
 
@@ -17,6 +17,8 @@ package body Adaimageprocessor.Image.Analyze is
             end loop;
             -- unblock read-operation, i.e. we are done
             position_available := True;
+            -- reset rail_counter
+            rail_counter := railnumber'First-1;
          end if;
       end Write;
 
@@ -24,6 +26,7 @@ package body Adaimageprocessor.Image.Analyze is
       begin
          position := position_of_train_in_pixels;
          position_available := false;
+         position_of_train_in_pixels := -1;
       end Read;
    end Resulting_Position;
 
@@ -50,15 +53,15 @@ package body Adaimageprocessor.Image.Analyze is
    task body Analyze_Rail is
       slicenumber : Integer;
       output : Integer;
-      rail_of_interest : TRACK.Slices := rail_to_process.all;
+      rail_of_interest : constant TRACK.Slices := rail_to_process.all;
    begin
       loop
          AllowShutdown;
+         -- each task needs its own semaphore, hence the following line
          STASKC.Suspend_Until_True(S => Analyze_Semaphore(id));
          slicenumber := detect_train_one_rail(input => Local_imagedata.Get_Imagedata, rail_of_interest => rail_of_interest);
          output := Slice_To_Pixel(rail_of_interest => rail_of_interest, Slicenumber => slicenumber);
          Resulting_Position.Write(position => output);
-         exit when InterruptController.Shutdown_Requested;
       end loop;
    exception
       when Error: END_TASK =>
@@ -70,28 +73,7 @@ package body Adaimageprocessor.Image.Analyze is
    Left_Rail_Worker : Analyze_Rail(1, TRACK.Left_Rail'Access);
    Right_Rail_Worker : Analyze_Rail(2, TRACK.Right_Rail'Access);
 
-
-   function detect_train (input: in storage_for_image) return Integer is
-      output : Integer;
-   begin
-      Resulting_Position.Read(position => output);
-      return output;
-   end detect_train;
-
    -- private
-
-   package body Local_imagedata is
-      procedure Set_Imagedata (data : in storage_for_image) is
-      begin
-         imagedata_to_analyze := data;
-      end Set_Imagedata;
-
-      function Get_Imagedata return storage_for_image is
-      begin
-         return imagedata_to_analyze;
-      end Get_Imagedata;
-   end Local_imagedata;
-
 
    function detect_train_one_rail (input: in storage_for_image; rail_of_interest : in TRACK.Slices) return Integer is
       meanvalue, slopevalue : slice_meanvalues(rail_of_interest'First..rail_of_interest'Last);
@@ -179,7 +161,6 @@ package body Adaimageprocessor.Image.Analyze is
       end loop;
       mean := float_for_mean(sum_of_points) / float_for_mean(points_of_interest'Length);
       return grayvalue(float_for_mean'Rounding(mean));
-
    end get_slice_mean;
 
    function get_slice_moving_average (Current_Slice: in Positive; meanvalue: in slice_meanvalues; rail_of_interest: in TRACK.Slices) return grayvalue is
@@ -213,6 +194,9 @@ package body Adaimageprocessor.Image.Analyze is
       KILL : exception;
    begin
       raise KILL with "Internal image copying: Shutdown. Goodbye.";
+   exception
+      when Error: KILL =>
+         Adaimageprocessor.Error(Error);
    end Cleanup_Acquire_Imagedata;
 
 
@@ -225,7 +209,22 @@ package body Adaimageprocessor.Image.Analyze is
       -- informative purposes and not safety-relevant.
       output(14) := railnumber'Image(id)(2);
       raise KILL with output;
+   exception
+      when Error: KILL =>
+	 Adaimageprocessor.Error(Error);
    end Cleanup_Analyze_Rail;
 
+
+   package body Local_imagedata is
+      procedure Set_Imagedata (data : in storage_for_image) is
+      begin
+         imagedata_to_analyze := data;
+      end Set_Imagedata;
+
+      function Get_Imagedata return storage_for_image is
+      begin
+         return imagedata_to_analyze;
+      end Get_Imagedata;
+   end Local_imagedata;
 
 end Adaimageprocessor.Image.Analyze;

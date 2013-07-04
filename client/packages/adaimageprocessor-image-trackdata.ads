@@ -5,8 +5,10 @@
 -- This package holds all the constant values concerning the position of the
 -- track on the images to be processed
 --
+-- Remarks:
+-- Perhaps the data-structure could be improved (fewer pointers) by using the
+-- new Ada2005 Container library.
 --------------------------------------------------------------------------------
-
 package Adaimageprocessor.Image.Trackdata is
 
 
@@ -24,8 +26,8 @@ package Adaimageprocessor.Image.Trackdata is
    -----------------------------------------------------------------------------
    type Point_Structure is
       record
-         X : Integer;
-         Y : Integer;
+         X : Natural range Dimensions_ROI.Top_Left_X..Dimensions_ROI.Bottom_Right_X;
+         Y : Natural range Dimensions_ROI.Top_Left_Y..Dimensions_ROI.Bottom_Right_Y;
       end record;
 
    type Points        is array (Positive range <>) of aliased Point_Structure;
@@ -16524,5 +16526,4 @@ package Adaimageprocessor.Image.Trackdata is
      );
 
    -- DATA END
-
 end Adaimageprocessor.Image.Trackdata;

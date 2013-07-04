@@ -6,16 +6,14 @@
 
 --- only testing FIXME; for file write
 with Ada.Streams.Stream_IO;
-with Adaimageprocessor.Image;
 -- END test
+with Adaimageprocessor.Image;
+
 
 package Adaimageprocessor.Network.Protocol.Imagetransfer is
 
-   -----------------------------------------------------------------------------
-   -- Types: Adaimageprocessor.Communication
-   --  Image - A datatype which can hold the entire image
-   -----------------------------------------------------------------------------
-   subtype Image is STREAMLIB.Stream_Element_Array (1 .. STREAMLIB.Stream_Element_Offset(Number_Of_Chunks'Last * Image_Chunk_Data'Length));
+   package Imagehandling renames Adaimageprocessor.Image;
+
 
    -----------------------------------------------------------------------------
    -- Group: Client_Controller
@@ -27,25 +25,6 @@ package Adaimageprocessor.Network.Protocol.Imagetransfer is
       pragma Storage_Size ( 8192*1024 );
    end Imagetransfer_Controller;
 
-   -----------------------------------------------------------------------------
-   -- Function: Return_Image
-   -- Purpose:
-   --   Return an image from the server (camera).
-   --
-   -- Effects:
-   --   FIXME complete list what it does
-   --   * Merely assembles the chunks from
-   --    <Adaimageprocessor.Network.Protocol.Request_Chunks>
-   --
-   -- Parameters:
-   --  Subimage_Dimensions - A record specifying the dimensions of the ROI; see
-   --  <Adaimageprocessor.Network.Protocol.Request_Next_Image>
-   --
-   -- Exceptions:
-   --   FIXME
-   -----------------------------------------------------------------------------
-   function Return_Image ( Subimage_Dimensions : in Image_Dimensions )
-			 return Image;
 
    -- FIXME: Missing doc; not for production code anyways
    procedure Write_Image_To_File;
@@ -64,6 +43,10 @@ private
    Server_IP : constant String := "127.0.0.1";
    --Server_IP : constant String := "192.168.1.200";
    Server_Port : constant Positive := 12345;
+
+   -- FIXME Missing documentation
+
+   function Get_Image_From_Remote( Subimage_Dimensions : in Image_Dimensions) return Imagehandling.storage_for_image;
 
    -----------------------------------------------------------------------------
    -- Procedure: Setup

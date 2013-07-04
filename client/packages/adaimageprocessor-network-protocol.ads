@@ -33,28 +33,15 @@ package Adaimageprocessor.Network.Protocol is
    -- Types: Adaimageprocessor.Network.Protocol
    --  Number_Of_Chunks - an Integer subtype covering all natural numbers up
    --  to 6728, which is the maximum number to be expected for an image
-   --  Image_Dimensions - A record specifying the valid X,Y dimensions of a
-   --  subimage
    --  Image_Chunk_Data - same as <Adaimageprocessor.Network.Socket.Transmittable_Data_Array>
    --
    --  Image_Chunks - a type defining an array of Chunks with the
    --  dimension of <Number_Of_Chunks> that can hold the actual image chunks
    --  FIXME
    -----------------------------------------------------------------------------
-   --subtype Number_Of_Chunks is Positive range 1 .. 6790; -- FIXME make server-dependant, relevant for Image_Chunk_Data! Max 4 digits for 'Last
-
-
-
-
    subtype Number_Of_Chunks is SOCKETCOMM.Number_Of_Chunks;
 
-   type Image_Dimensions is
-      record
-	 Top_Left_X : Width_Of_Image;
-	 Top_Left_Y : Height_Of_Image;
-	 Bottom_Right_X : Width_Of_Image;
-	 Bottom_Right_Y : Height_Of_Image;
-      end record;
+
 
    use type STREAMLIB.Stream_Element_Offset;
    subtype Image_Chunk_Data is SOCKETCOMM.Transmittable_Data_Array;

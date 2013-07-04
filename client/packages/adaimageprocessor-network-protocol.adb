@@ -6,7 +6,8 @@ package body Adaimageprocessor.Network.Protocol is
       Request_String : String(1 .. 18);
    begin
       if ROI_Dimensions.Top_Left_X >= ROI_Dimensions.Bottom_Right_X or ROI_Dimensions.Top_Left_Y >= ROI_Dimensions.Bottom_Right_Y then
-	 raise IMAGE_DIMENSION_ERROR with "given dimensions cannot be processed"; -- FIXME can this ever happen in the implementation?
+	 raise IMAGE_DIMENSION_ERROR with "given dimensions cannot be processed"; -- basically an error by the implementer...
+         -- Note: This check does not take into account that track-data in adimageprocessor-image-trackdata.ads may be out of the bounds of the ROI
       end if;
 
       -- unset burst-transfer mode
@@ -217,4 +218,3 @@ package body Adaimageprocessor.Network.Protocol is
 
 
 end Adaimageprocessor.Network.Protocol;
-

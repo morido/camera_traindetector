@@ -28,21 +28,41 @@ package Adaimageprocessor is
    -- Types:
    --
    --  Width_Of_Image - an Integer subtype covering all natural numbers up to
-   --  960, which is the maximum width of an image captured by the camera
+   --  571, which is the maximum width of an image captured by the camera
    --  Height_Of_Image - an Integer subtype covering all natural numbers up to
-   --  1280, which is the maximum height of an image captured by the camera
+   --  723, which is the maximum height of an image captured by the camera
+   --  Image_Dimensions - A record specifying the valid X,Y dimensions of a
+   --  subimage
    -----------------------------------------------------------------------------
    subtype Width_Of_Image is Natural range 0 .. 571;
    subtype Height_Of_Image is Natural range 0 .. 723;
 
+   type Image_Dimensions is
+      record
+	 Top_Left_X : Width_Of_Image;
+	 Top_Left_Y : Height_Of_Image;
+	 Bottom_Right_X : Width_Of_Image;
+	 Bottom_Right_Y : Height_Of_Image;
+      end record;
+
 
    -----------------------------------------------------------------------------
    -- Variables:
-   --  ShutdownFlag - A Flag telling <Adaclient> cease operation.
    --  END_TASK - An exception to signalize the need to shut down
    -----------------------------------------------------------------------------
-
    END_TASK : exception;
+
+   -----------------------------------------------------------------------------
+   -- Constants:
+   -- Dimensions_ROI - A record which defines the area of the image containing
+   -- the rails; if the coordinates do not match up with the data in
+   -- <Adaimageprocessor.Image.Analyze> the program will exit with a
+   -- CONSTRAINT_ERROR
+   -----------------------------------------------------------------------------
+   Dimensions_ROI : constant Image_Dimensions := (Top_Left_X => Width_Of_Image'First,
+                                                  Top_Left_Y => Height_Of_Image'First,
+                                                  Bottom_Right_X => 344,
+                                                  Bottom_Right_Y => Height_Of_Image'Last);
 
    -----------------------------------------------------------------------------
    -- Pragmas:

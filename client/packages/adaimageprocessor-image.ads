@@ -34,7 +34,7 @@ package Adaimageprocessor.Image is
       procedure Write (data : in storage_for_image);
       procedure Shutdown;
    private
-      Current_Image : storage_for_image := (others => (others => STREAMLIB.Stream_Element(0)));
+      Current_Image : storage_for_image;
       Ready_For_Read : Boolean := False;
    end Imagedata;
 
