@@ -4,9 +4,11 @@
 --   Abstracts the <Adaimageprocessor.Network.Protocol>-package.
 --------------------------------------------------------------------------------
 
---- only testing FIXME; for file write
-with Ada.Streams.Stream_IO;
--- END test
+--------------------------------------------------------------------------------
+-- Headers:
+-- Adaimageprocessor.Image - Link to the image processing so data can be sent
+-- over
+--------------------------------------------------------------------------------
 with Adaimageprocessor.Image;
 
 
@@ -26,9 +28,6 @@ package Adaimageprocessor.Network.Protocol.Imagetransfer is
    end Imagetransfer_Controller;
 
 
-   -- FIXME: Missing doc; not for production code anyways
-   procedure Write_Image_To_File;
-
 private
    -----------------------------------------------------------------------------
    -- Section: private
@@ -44,9 +43,20 @@ private
    --Server_IP : constant String := "192.168.1.200";
    Server_Port : constant Positive := 12345;
 
-   -- FIXME Missing documentation
-
-   function Get_Image_From_Remote( Subimage_Dimensions : in Image_Dimensions) return Imagehandling.storage_for_image;
+   -----------------------------------------------------------------------------
+   -- Function: Get_Image_From_Remote
+   --
+   -- Purpose:
+   -- Request the image from the remote camera, write it into an appropriate
+   -- structure (2d array) and return it.
+   --
+   -- Parameters:
+   -- None.
+   --
+   -- Returns:
+   -- The pixeldata in a 2-dimensional array.
+   -----------------------------------------------------------------------------
+   function Get_Image_From_Remote return Imagehandling.storage_for_image;
 
    -----------------------------------------------------------------------------
    -- Procedure: Setup

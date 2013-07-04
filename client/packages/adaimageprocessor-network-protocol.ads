@@ -33,11 +33,14 @@ package Adaimageprocessor.Network.Protocol is
    -- Types: Adaimageprocessor.Network.Protocol
    --  Number_Of_Chunks - an Integer subtype covering all natural numbers up
    --  to 6728, which is the maximum number to be expected for an image
-   --  Image_Chunk_Data - same as <Adaimageprocessor.Network.Socket.Transmittable_Data_Array>
-   --
-   --  Image_Chunks - a type defining an array of Chunks with the
+   --  Image_Chunk_Data - same as
+   --  <Adaimageprocessor.Network.Socket.Transmittable_Data_Array>
+   --  Image_Chunk_Data_NoNumber - the same as <Image_Chunk_Data> but only the
+   --  data without the sequence number
+   --  Image_Chunks_Type - a type defining an array of Chunks with the
    --  dimension of <Number_Of_Chunks> that can hold the actual image chunks
-   --  FIXME
+   --  Image_Chunks - A record which holds an <Image_Chunks_Type> plus the size
+   --  of the very last chunk (which may be smaller than the others)
    -----------------------------------------------------------------------------
    subtype Number_Of_Chunks is SOCKETCOMM.Number_Of_Chunks;
 
@@ -61,9 +64,7 @@ package Adaimageprocessor.Network.Protocol is
    --   prepare it for transmission (i.e. crop it to the given size)
    --
    -- Parameters:
-   --  ROI_Dimensions - a record containing the upper left and lower right
-   --  corner of the requested region of interest (i.e. a part of the entire
-   --  image)
+   --  None.
    --
    -- Returns:
    --  The number of chunks this image will be split into.
@@ -76,8 +77,7 @@ package Adaimageprocessor.Network.Protocol is
    --  transmitted a specific errormessage
    --  SOCKETCOMM.CONNECTION_ERROR - no data was received within a given timeout
    -----------------------------------------------------------------------------
-   function Request_Next_Image ( ROI_Dimensions : in Image_Dimensions )
-			       return Number_Of_Chunks;
+   function Request_Next_Image return Number_Of_Chunks;
 
    -----------------------------------------------------------------------------
    -- Function: Request_Chunks

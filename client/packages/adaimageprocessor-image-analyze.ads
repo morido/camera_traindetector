@@ -168,7 +168,8 @@ private
    -- Variables: Adaimageprocessor.Image.Analyze
    --
    -- Analyze_Semaphore - An array of semaphores to synchronize the Image
-   -- aquisition task FIXME NAME and the image processing tasks FIXME Name
+   -- aquisition task <Acquire_Imagedata> and the image processing tasks derived
+   -- from <Analyze_Rail>.
    -----------------------------------------------------------------------------
    Analyze_Semaphore : array (railnumber'Range) of STASKC.Suspension_Object;
 

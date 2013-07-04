@@ -1,11 +1,10 @@
 package body Adaimageprocessor.Network.Protocol is
 
-   function Request_Next_Image ( ROI_Dimensions : in Image_Dimensions )
-			       return Number_Of_Chunks is
+   function Request_Next_Image return Number_Of_Chunks is
       IMAGE_DIMENSION_ERROR: exception;
       Request_String : String(1 .. 18);
    begin
-      if ROI_Dimensions.Top_Left_X >= ROI_Dimensions.Bottom_Right_X or ROI_Dimensions.Top_Left_Y >= ROI_Dimensions.Bottom_Right_Y then
+      if Dimensions_ROI.Top_Left_X >= Dimensions_ROI.Bottom_Right_X or Dimensions_ROI.Top_Left_Y >= Dimensions_ROI.Bottom_Right_Y then
 	 raise IMAGE_DIMENSION_ERROR with "given dimensions cannot be processed"; -- basically an error by the implementer...
          -- Note: This check does not take into account that track-data in adimageprocessor-image-trackdata.ads may be out of the bounds of the ROI
       end if;
@@ -15,10 +14,10 @@ package body Adaimageprocessor.Network.Protocol is
 
       -- construct request_string
       Request_String := OperationIdentifiers.ToString(operation => OperationIdentifiers.Request_Next_Image)
-        & Process_Image_Size(ROI_Dimensions.Top_Left_X)
-        & Process_Image_Size(ROI_Dimensions.Top_Left_Y)
-        & Process_Image_Size(ROI_Dimensions.Bottom_Right_X)
-        & Process_Image_Size(ROI_Dimensions.Bottom_Right_Y);
+        & Process_Image_Size(Dimensions_ROI.Top_Left_X)
+        & Process_Image_Size(Dimensions_ROI.Top_Left_Y)
+        & Process_Image_Size(Dimensions_ROI.Bottom_Right_X)
+        & Process_Image_Size(Dimensions_ROI.Bottom_Right_Y);
 
       Main_Block :
       declare
