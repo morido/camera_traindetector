@@ -23,7 +23,6 @@ int error(const char *caller, const char *errormessage)
 
   strftime(timestamp, sizeof timestamp, "%F %T.00", localtime(&now)); /* decisecond precision not implemented */
   snprintf(completemessage, sizeof(completemessage), "%s %s: %s", timestamp, caller, errormessage); /* errormessages with too many chars will be silently truncated, which is safe here */
-  //perror(completemessage);
   fprintf(stderr, "%s\n", completemessage);
 
   /*try to send the errormessage to the client via the socket */

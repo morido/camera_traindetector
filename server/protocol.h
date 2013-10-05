@@ -1,37 +1,47 @@
+
 /*
-Package: protocol
+Package: Protocol
 
 Purpose:
 Implement a protocol to communicate with the client, hence abstract the
-functions in <socket>
+functions in <Socket>
 */
 
 /*
-includes:
-math.h - for ceil(), i.e. to round-up a number
-errno.h - to catch errors of strtol()
+defines:
+   CHUNKIDWIDTH - width of the the chunkid in bytes
+   NULLTERMINATOR - width of the null-terminator byte
+   _XOPEN_SOURCE - the timespec of nanosleep is not C99, so this tells the
+   compiler we want POSIX defitions in here
+*/
+#define CHUNKIDWIDTH 4
+/* do not set higher than 9, protocol_GetNextChunk() would break otherwise; client will break with any value =! 4 */
+#define NULLTERMINATOR 1
+#define _XOPEN_SOURCE 500
+
+/*
+   includes:
+   stdio.h - for snprintf()
+   math.h - for ceil(), i.e. to round-up a number
+   stdlib.h - for free()
+   errno.h - to catch errors of strtol()
+   string.h - for memcpy()
+   time.h - for nanosleep()
 */
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <string.h> //for memcpy
+#include <string.h>
+#include <time.h>
 #include "globalconstants.h"
 #include "imageproperties.h"
 
-extern char* socket_ReceiveFromClient();
-extern void socket_SendToClient();
-extern struct ImageData camera_ReadImage();
-extern int error();
+extern char* socket_ReceiveFromClient(void);
+extern void socket_SendToClient(const char *senddata, const int length);
+extern struct ImageData camera_ReadImage(struct ImageDimensions Dimensions);
+extern int error(const char *caller, const char *errormessage);
 
-/*
-defines:
-CHUNKIDWIDTH - width of the the chunkid in bytes
-NULLTERMINATOR - width of the null-terminator byte
-*/
-#define CHUNKIDWIDTH 4
-/* do not set higher than 9, protocol_GetNextChunk() would break otherwise; client will break with any value =! 4 */
-#define NULLTERMINATOR 1
 
 
 /*
@@ -46,7 +56,7 @@ CurrentImage - temporal storage for the image currently in use
 Chunkscount - temporal storage for the number of chunks of the current image
 LastChunkSize - The size of the very last chunk (which can be smaller than MAXPACKETSIZE)
 */
-static char* CurrentImage = NULL;
+static unsigned char* CurrentImage = NULL;
 static int Chunkscount = -1;
 static int LastChunkSize = 0;
 
@@ -65,7 +75,7 @@ static int LastChunkSize = 0;
    Returns:
    The request as a char-array.
 */
-char* protocol_GetRequest();
+char* protocol_GetRequest(void);
 
 /*
    Function: protocol_PrepareNextImage
@@ -93,7 +103,7 @@ void protocol_PrepareNextImage (char* rawrequest);
    Returns:
    nothing. (since this is an UDP-transfer)
 */
-void protocol_TransmitChunks ();
+void protocol_TransmitChunks (void);
 
 /*
 Section: Static

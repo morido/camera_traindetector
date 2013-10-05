@@ -109,8 +109,8 @@ package body Adaimageprocessor.Network.Protocol is
          Chunk_Receive_Loop :
          for Index_A in Number_Of_Chunks'First .. Chunks loop
             declare
-               --Received_Data                  : constant STREAMLIB.Stream_Element_Array := Receive_Data;
-               Received_Data                  : constant STREAMLIB.Stream_Element_Array := Adaimageprocessor.Network.Socket.Receive.Receive_Data;
+               package SOCKETCOMMRCV renames Adaimageprocessor.Network.Socket.Receive;
+               Received_Data                  : constant STREAMLIB.Stream_Element_Array := SOCKETCOMMRCV.Receive_Data;
                Current_Chunk_Number_As_String : String(1..4);
                Current_Chunk_Number           : Number_Of_Chunks;
             begin
@@ -213,7 +213,7 @@ package body Adaimageprocessor.Network.Protocol is
             raise CAMERA_ERROR with StreamConverter.ToString(Input => Return_Array(3..Return_Array'Last-1));
       end case;
 
-   end;
+   end Receive_Data;
 
 
 end Adaimageprocessor.Network.Protocol;

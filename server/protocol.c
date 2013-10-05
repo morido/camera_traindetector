@@ -14,6 +14,8 @@ char* protocol_GetRequest()
 
 void protocol_PrepareNextImage (char* rawrequest)
 {
+  struct ImageData imagedata;
+
   /* read image dimensions */
   struct ImageDimensions Dimensions;
   Dimensions.top_left_x = protocol_DimensionConversion (rawrequest, 2);
@@ -22,7 +24,6 @@ void protocol_PrepareNextImage (char* rawrequest)
   Dimensions.bottom_right_y = protocol_DimensionConversion (rawrequest, 14);
 
   /* calulate necessary number of chunks */
-  struct ImageData imagedata;
   imagedata = camera_ReadImage(Dimensions);
   CurrentImage = imagedata.Image;
   if ( useableMAXPACKETSIZE > 0 )
@@ -58,10 +59,12 @@ void protocol_PrepareNextImage (char* rawrequest)
       LastChunkSize = imagedata.ImageSize;
     }
 
-  /* Send to client */
-  char transmitstring[2+CHUNKIDWIDTH+1];
-  snprintf(transmitstring, sizeof(transmitstring), "IN%s", protocol_ChunkidToString(Chunkscount));
-  socket_SendToClient(transmitstring, sizeof(transmitstring));
+  {
+    /* Send to client */
+    char transmitstring[2+CHUNKIDWIDTH+1];
+    snprintf(transmitstring, sizeof(transmitstring), "IN%s", protocol_ChunkidToString(Chunkscount));
+    socket_SendToClient(transmitstring, sizeof(transmitstring));
+  }
 }
 
 void protocol_TransmitChunks ()
@@ -79,15 +82,24 @@ void protocol_TransmitChunks ()
   /* reply to request */
   socket_SendToClient("IC", sizeof("IC"));
 
-  int i;
-  for (i=0; i<Chunkscount-1; i++)
-    {
-      socket_SendToClient(protocol_GetNextChunk(i), MAXPACKETSIZE);
-      // FIXME add real congestion-control here
-      nanosleep((struct timespec[]){{0, 0}}, NULL); //sleep for 0.000000005s
-    }
-  //very last chunk
-  socket_SendToClient(protocol_GetNextChunk(i), LastChunkSize+CHUNKIDWIDTH);
+  {
+    int i;
+    for (i=0; i<Chunkscount-1; i++)
+      {
+	socket_SendToClient(protocol_GetNextChunk(i), MAXPACKETSIZE);
+	/* FIXME add real congestion-control here */
+	{
+	  const struct timespec sleeptimer = {
+	    .tv_sec = 0,
+	    .tv_nsec = 0L
+	  };
+	  nanosleep(&sleeptimer, (struct timespec *) NULL);
+	  /* nanosleep((struct timespec[]){{0, 0}}, NULL); sleep for as short as possible */
+	}
+      }
+    /* very last chunk */
+    socket_SendToClient(protocol_GetNextChunk(i), LastChunkSize+CHUNKIDWIDTH);
+  }
 
   /* free the memory for the image */
   free(CurrentImage);
@@ -100,11 +112,11 @@ void protocol_TransmitChunks ()
 
 static int protocol_DimensionConversion (char* rawrequest, int offset)
 {
+  long return_value;
   char *conversionendpointer = NULL;
   char tempsize[5]; /* snprintf writes nullterminators so we need 4+1 in size here! */
   snprintf(tempsize, sizeof(tempsize), "%c%c%c%c", rawrequest[offset], rawrequest[offset+1], rawrequest[offset+2], rawrequest[offset+3]);
 
-  long return_value;
   errno = 0;
   return_value = strtol(tempsize, &conversionendpointer, 10);
 
@@ -123,31 +135,31 @@ static int protocol_DimensionConversion (char* rawrequest, int offset)
 static char* protocol_GetNextChunk (int chunkid)
 {
   static char return_chunk[MAXPACKETSIZE];
+  int readuntil = useableMAXPACKETSIZE;
 
   /* The client starts counting with 1, so chunkid+1 */
   memcpy(return_chunk, protocol_ChunkidToString(chunkid+1), CHUNKIDWIDTH);
   /* FIXME faster alternative that does not \0 the other elements? */
 
-
-  int readuntil = useableMAXPACKETSIZE;
   /* special treatment for the very last chunk */
   if ( chunkid+1 == Chunkscount )
     {
       readuntil = LastChunkSize;
     }
 
-  /* write imagedata */
-  int i;
-  for (i=0; i<readuntil; i++)
-    {
-	// FIXME: this line is wrong. fix it!
-	//we are reading one byte too far ahead...
-      return_chunk[i+CHUNKIDWIDTH] = CurrentImage[chunkid*useableMAXPACKETSIZE+i];
+  {
+    /* write imagedata */
+    int i;
+    for (i=0; i<readuntil; i++)
+      {
+	/* FIXME: this line is wrong. fix it!
+	we are reading one byte too far ahead... */
+	return_chunk[i+CHUNKIDWIDTH] = CurrentImage[chunkid*useableMAXPACKETSIZE+i];
     }
-
   /* Null-Terminate our result */
-  //return_chunk[i+1] = '\0';
-  /* FIXME get the above line back in -- makes sense there */
+  /* return_chunk[i+1] = '\0'; */
+    /* FIXME get the above line back in -- makes sense there */
+  }
 
   return return_chunk;
 }
@@ -156,8 +168,8 @@ static char* protocol_ChunkidToString (int chunk)
 {
   /* the format-string adds appropriate zero-padding */
   char format[5];
-  snprintf(format, sizeof(format), "%%0%dd", CHUNKIDWIDTH);
   static char chunkid_as_string[5];
+  snprintf(format, sizeof(format), "%%0%dd", CHUNKIDWIDTH);
   snprintf(chunkid_as_string, CHUNKIDWIDTH+1, format, chunk);
   return chunkid_as_string;
 }

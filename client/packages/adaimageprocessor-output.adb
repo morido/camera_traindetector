@@ -44,8 +44,4 @@ package body Adaimageprocessor.Output is
       end Stop;
    end Timer;
 
-
-
-
-
 end Adaimageprocessor.Output;

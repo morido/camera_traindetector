@@ -30,10 +30,11 @@ stdlib.h - for portable EXIT_FAILURE
    Returns:
    Nothing.
 */
-void precheck();
+void precheck(void);
 
 
-extern void socket_close();
+extern void socket_close(void);
+extern void socket_SendErrorToClient(const char *senddata, const int length);
 
 /*
 Function: ErrorInternal

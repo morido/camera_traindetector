@@ -39,7 +39,7 @@ package body Adaimageprocessor.Image is
          return Result;
       exception
          when others =>
-            raise CONVERSION_ERROR with "Can not convert to numerical value.";
+            raise CONVERSION_ERROR with "Cannot convert to numerical value.";
       end ToNatural;
 
    end Streamconverter;

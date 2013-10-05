@@ -22,17 +22,19 @@ void socket_open()
       error(__FUNCTION__, "Bind error.");
     }
 
+  {
   /* set send and receive buffers */
   /* FIXME: is this necessary? */
-  int tmp = MAXPACKETSIZE;
-  if ( setsockopt(sockethandler, SOL_SOCKET, SO_SNDBUF, &tmp, sizeof(tmp)) < 0)
-    {
-      error(__FUNCTION__, "Error setting sendbuffer.");
-    }
-  if ( setsockopt(sockethandler, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp)) < 0)
-    {
-      error(__FUNCTION__, "Error setting receivebuffer.");
-    }
+    int tmp = MAXPACKETSIZE;
+    if ( setsockopt(sockethandler, SOL_SOCKET, SO_SNDBUF, &tmp, sizeof(tmp)) < 0)
+      {
+	error(__FUNCTION__, "Error setting sendbuffer.");
+      }
+    if ( setsockopt(sockethandler, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp)) < 0)
+      {
+	error(__FUNCTION__, "Error setting receivebuffer.");
+      }
+  }
 }
 
 void socket_close()
@@ -45,9 +47,10 @@ void socket_close()
 
 char* socket_ReceiveFromClient()
 {
+  static char receivedata[MAXPACKETSIZE+1]; /* +1 for stopbit, i.e. \0 */
   /* receive data from the (Ada-)Client */
   socket_Precheck();
-  static char receivedata[MAXPACKETSIZE+1]; /* +1 for stopbit, i.e. \0 */
+
   if (recvfrom(sockethandler, receivedata, MAXPACKETSIZE, 0, (struct sockaddr *) &clientaddress, &clientaddresslength) < 0)
     {
       error(__FUNCTION__ , "Data could not be received.");
@@ -76,7 +79,7 @@ void socket_SendErrorToClient(const char *senddata, const int length)
     }
 }
 
-static void socket_Precheck()
+static void socket_Precheck(void)
 {
   if (sockethandler < 0)
     {

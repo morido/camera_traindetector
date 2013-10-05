@@ -208,12 +208,12 @@ package Adaimageprocessor.Network.Socket is
       -- ROUNDTRIP_TRIES - How often to perform a complete roundtrip (i.e. send
       -- request wait for answer)
       --------------------------------------------------------------------------
-      SOCKET_TIMEOUT_MAX : constant Duration := 0.1;
+      SOCKET_TIMEOUT_MAX : constant Duration := 1.0;
       --SOCKET_TIMEOUT_MIN : constant Duration := 0.01; --FIXME good value?
-      SOCKET_TIMEOUT_MIN : constant Duration := 0.05;
-      CONNECTION_TRIES_MAX : constant Positive := 5;
-      CONNECTION_TRIES_MIN : constant Positive := 2;
-      ROUNDTRIP_TRIES : constant Positive := 2;
+      SOCKET_TIMEOUT_MIN : constant Duration := 0.7;
+      CONNECTION_TRIES_MAX : constant Positive := 2;
+      CONNECTION_TRIES_MIN : constant Positive := 3;
+      ROUNDTRIP_TRIES : constant Positive := 3;
 
       --------------------------------------------------------------------------
       -- Variables: SettingsManager

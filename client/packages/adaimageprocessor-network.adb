@@ -14,7 +14,7 @@ package body Adaimageprocessor.Network is
          return Result;
       exception
          when others =>
-            raise CONVERSION_ERROR with "Can not convert to stream";
+            raise CONVERSION_ERROR with "Cannot convert to stream";
       end ToStream;
 
       function ToString (Input: in STREAMLIB.Stream_Element_Array) return String is
@@ -27,7 +27,7 @@ package body Adaimageprocessor.Network is
          return Result;
       exception
          when others =>
-            raise CONVERSION_ERROR with "Can not convert to string";
+            raise CONVERSION_ERROR with "Cannot convert to string";
       end ToString;
 
    end Streamconverter;

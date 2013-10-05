@@ -1,9 +1,9 @@
 /*
-Package:
-Camera.h
+Package: Camera
 
 Purpose:
-Provide an interface to capture.h to read raw camera data
+   Provide an interface to capture.h to read raw camera data. Currently this is
+   only a mockup and reads the image from a file.
 
 */
 
@@ -27,20 +27,16 @@ IMAGEWIDTH - the width of the image in pixels
 
 
 /*
-   Function:
-   camera_ReadImage
+   Function: camera_ReadImage
 
    Purpose:
    Read and Crop an image from the camera
 
-
    Parameters:
-   ImageDimensions - see <ImageDimensions>
-
+   ImageDimensions - see <Imageproperties.ImageDimensions>
 
    Returns:
    An <ImageData>-struct.
-
 
    Exceptions:
    Returns an error if any of the x/y-coordinate values are malformed
@@ -52,16 +48,14 @@ section: Static
 */
 
 /*
-   Function:
-   camera_ReadImageRaw
+   Function: camera_ReadImageRaw
 
    Purpose:
    Read an image from the camera
 
    Parameters:
-   ImageDimensions - see <ImageDimensions>
+   ImageDimensions - see <Imageproperties.ImageDimensions>
    resulting_imagesize - the calculated size of the resulting image
-
 
    Returns:
    A pointer to the obtained image data

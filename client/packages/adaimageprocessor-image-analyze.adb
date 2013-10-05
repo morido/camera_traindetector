@@ -12,9 +12,6 @@ package body Adaimageprocessor.Image.Analyze is
          -- result from one more rail received
          rail_counter := rail_counter + 1;
          if rail_counter = railnumber'Last then
-            for current_semaphore in Analyze_Semaphore'Range loop
-               STASKC.Set_False(S => Analyze_Semaphore(current_semaphore));
-            end loop;
             -- unblock read-operation, i.e. we are done
             position_available := True;
             -- reset rail_counter
@@ -70,8 +67,7 @@ package body Adaimageprocessor.Image.Analyze is
          Adaimageprocessor.Error(Error);
    end Analyze_Rail;
 
-   Left_Rail_Worker : Analyze_Rail(1, TRACK.Left_Rail'Access);
-   Right_Rail_Worker : Analyze_Rail(2, TRACK.Right_Rail'Access);
+
 
    -- private
 

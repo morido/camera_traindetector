@@ -49,9 +49,8 @@ package body Adaimageprocessor.Network.Protocol.Imagetransfer is
          -- Note: the output is constant in size disregarding the requested
          -- Subimage. So all pixels outside of this Subimage are not
          -- initialized!
-         -- But since Trackdata and Subimage-Dimensions are not linked anyways,
-         -- this cannot really be handled programmatically but should rather be
-         -- taken care of by the implementer.
+         -- Ada takes care of not accessing out-of-bounds pixels with its
+         -- range-checking in Adaimageprocessor.Image.Trackdata
          return output;
       end phase2;
 

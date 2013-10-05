@@ -16,7 +16,7 @@ package Adaimageprocessor.Image is
    -----------------------------------------------------------------------------
    -- types:
    --
-   -- storage_for_image - a 2d arraw able to accomodate an entire image
+   -- storage_for_image - a 2d array able to accomodate an entire image
    -----------------------------------------------------------------------------
    type storage_for_image is array (Width_Of_Image'Range) of
      STREAMLIB.Stream_Element_Array(STREAMLIB.Stream_Element_Offset(Height_Of_Image'First)..STREAMLIB.Stream_Element_Offset(Height_Of_Image'Last));
@@ -30,8 +30,59 @@ package Adaimageprocessor.Image is
    -- current image of the camera
    -----------------------------------------------------------------------------
    protected Imagedata is
+      --------------------------------------------------------------------------
+      -- Procedure: Read
+      --
+      -- Purpose:
+      -- Read out the imagedata from the protected storage.
+      --
+      -- Effects:
+      -- This is a  blocking call and will not return until <Write> was called
+      -- (see below).
+      --
+      -- Parameters:
+      -- data - The pixeldata of the image.
+      --
+      -- Returns:
+      -- Nothing.
+      --------------------------------------------------------------------------
       entry Read (data: out storage_for_image);
+
+      --------------------------------------------------------------------------
+      -- Procedure: Write
+      --
+      -- Purpose:
+      -- Write the current imagedata into the protected storage.
+      --
+      -- Effects:
+      -- <Read>. This procedure has to be called once before a read can take
+      -- place.
+      --
+      -- Parameters:
+      -- data - The pixeldata of the image.
+      --
+      -- Returns:
+      -- Nothing.
+      --------------------------------------------------------------------------
       procedure Write (data : in storage_for_image);
+
+      --------------------------------------------------------------------------
+      -- Procedure: Shutdown
+      --
+      -- Purpose:
+      -- Explicitly unrelease the <read> entry and fill the imagedata with
+      -- arbitrary data. This is a prerequisite in the current implementation to
+      -- allow all downstream tasks to exit safetly.
+      --
+      -- Effects:
+      -- <read>.
+      --
+      -- Parameters:
+      -- None.
+      --
+      -- Returns:
+      -- Nothing.
+      --------------------------------------------------------------------------
       procedure Shutdown;
    private
       Current_Image : storage_for_image;

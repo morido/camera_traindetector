@@ -134,6 +134,7 @@ private
    -- detection_thresholds.local_minimum_zero_counter - how many consecutive
    -- zeros in the gradient may be tolerated while trying to find the local
    -- minimum
+   -- Semaphore_Array - A type used for <Analyze_Semaphore>.
    -----------------------------------------------------------------------------
    subtype grayvalue is Natural range 0..255;
    type float_for_mean is digits 3;
@@ -147,6 +148,7 @@ private
          delta_minimum_absolut_local : grayvalue;
          local_minimum_zero_counter : Natural;
    end record;
+   type Semaphore_Array is array (railnumber'Range) of STASKC.Suspension_Object;
 
    -----------------------------------------------------------------------------
    -- Constants: Adaimageprocessor.Image.Analyze
@@ -170,8 +172,16 @@ private
    -- Analyze_Semaphore - An array of semaphores to synchronize the Image
    -- aquisition task <Acquire_Imagedata> and the image processing tasks derived
    -- from <Analyze_Rail>.
+   -- Left_Rail_Worker - A task derivecd from
+   -- <Adaimageprocessor.Image.Analyze.Analyze_Rail> to handle all processing of
+   -- the left rail
+   -- Right_Rail_Worker - A task derivecd from
+   -- <Adaimageprocessor.Image.Analyze.Analyze_Rail> to handle all processing of
+   -- the right rail
    -----------------------------------------------------------------------------
-   Analyze_Semaphore : array (railnumber'Range) of STASKC.Suspension_Object;
+   Analyze_Semaphore : Semaphore_Array;
+   Left_Rail_Worker : Analyze_Rail(1, TRACK.Left_Rail'Access);
+   Right_Rail_Worker : Analyze_Rail(2, TRACK.Right_Rail'Access);
 
    -----------------------------------------------------------------------------
    -- Function: detect_train_one_rail

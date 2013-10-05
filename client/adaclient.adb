@@ -34,7 +34,7 @@ begin
    -- all the work is done inside tasks which are implicitly started upon
    -- execution of this main procedure; therefore we do absolutely nothing here
 
-   null;
+  null;
 
 
 end Adaclient;

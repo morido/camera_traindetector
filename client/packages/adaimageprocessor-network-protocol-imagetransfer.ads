@@ -39,8 +39,8 @@ private
    --  Server_IP - The IP of the server to connect to
    --  Server_Port - The Port of the server to connect to
    -----------------------------------------------------------------------------
-   Server_IP : constant String := "127.0.0.1";
-   --Server_IP : constant String := "192.168.1.200";
+   --Server_IP : constant String := "127.0.0.1";
+   Server_IP : constant String := "192.168.1.200";
    Server_Port : constant Positive := 12345;
 
    -----------------------------------------------------------------------------

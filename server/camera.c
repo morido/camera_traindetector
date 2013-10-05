@@ -17,7 +17,7 @@ static unsigned char* camera_ReadImageRaw (struct ImageDimensions Dimensions, in
 
   FILE *inputfile;
   //file = fopen("testimage.bmp", "rb");
-  inputfile = fopen("/home/morido/Dokumente/uni/9_semester/studienarbeit/software/client_traindetection/52.pgm", "rb");
+  inputfile = fopen("/home/morido/Dokumente/uni/9_semester/studienarbeit/software/client_traindetection/69.pgm", "rb");
   //inputfile = fopen("/tmp/38.pgm", "rb");
 
 

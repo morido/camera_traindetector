@@ -1,9 +1,8 @@
 /*
+   Package: Socket
 
-Package: Socket
-
-Purpose: Provide raw UDP-socket commmunication facilities
-
+   Purpose:
+   Provide raw UDP-socket commmunication facilities
 */
 
 /*
@@ -20,6 +19,7 @@ Purpose: Provide raw UDP-socket commmunication facilities
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <unistd.h> /*for close() of the socket descriptor */
 #include "globalconstants.h"
 
 
@@ -32,7 +32,7 @@ extern int error(const char *caller, const char *errormessage);
   PORTNUMBER - The port used for communication with the client
 */
 static const char CLIENTADDRESS[16]="127.0.0.1";
-//static const char CLIENTADDRESS[16]="192.168.56.1";
+/* static const char CLIENTADDRESS[16]="192.168.56.1"; */
 static const int PORTNUMBER=12345;
 
 
@@ -62,7 +62,8 @@ socklen_t clientaddresslength = sizeof(clientaddress);
 
 
 /*
-Function: socket_open
+   Function: socket_open
+
    Purpose:
    Creates a socket for the upcoming communication
 
@@ -72,10 +73,11 @@ Function: socket_open
    Returns:
    Nothing.
 */
-void socket_open();
+void socket_open(void);
 
 /*
-Function: socket_close
+   Function: socket_close
+
    Purpose:
    Close the socket opened previousely by <socket_open>
 
@@ -85,10 +87,11 @@ Function: socket_close
    Returns:
    Nothing.
 */
-void socket_close();
+void socket_close(void);
 
 /*
-Function: socket_receivefromclient
+   Function: socket_receivefromclient
+
    Purpose:
    Receive data from the client (the controlling Ada-Program)
 
@@ -98,10 +101,11 @@ Function: socket_receivefromclient
    Returns:
    A pointer to a char-array containing the received data.
 */
-char* socket_ReceiveFromClient();
+char* socket_ReceiveFromClient(void);
 
 /*
-Function: socket_sendtoclient
+   Function: socket_sendtoclient
+
    Purpose:
    Send data to the client (the controlling Ada-Program)
 
@@ -114,7 +118,8 @@ Function: socket_sendtoclient
 void socket_SendToClient(const char *senddata, const int length);
 
 /*
-Function: socket_sendtoclient
+   Function: socket_sendtoclient
+
    Purpose:
    Try to send errordata to the client (the controlling Ada-Program). If the
    socket is not properly set up this will silently fail.
@@ -132,14 +137,15 @@ Section: static
 */
 
 /*
-Function: socket_Precheck
+   Function: socket_Precheck
+
    Purpose:
-   Check if the socket is set up properly
+   Check if the socket is set up properly.
 
    Parameters:
-   none.
+   None.
 
    Returns:
-   nothing.
+   Nothing.
 */
-static void socket_Precheck();
+static void socket_Precheck(void);
